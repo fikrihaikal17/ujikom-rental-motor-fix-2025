@@ -11,6 +11,10 @@ class BagiHasil extends Model
 {
   use HasFactory;
 
+  // Revenue sharing constants
+  const OWNER_PERCENTAGE = 70; // 70% for owner
+  const ADMIN_PERCENTAGE = 30; // 30% for admin
+
   protected $fillable = [
     'penyewaan_id',
     'pemilik_id',
@@ -289,5 +293,38 @@ class BagiHasil extends Model
         : 0,
       'active_owners' => $revenues->unique('pemilik_id')->count(),
     ];
+  }
+
+  /**
+   * Calculate revenue sharing from total amount
+   */
+  public static function calculateSharing(float $totalAmount): array
+  {
+    $ownerShare = ($totalAmount * self::OWNER_PERCENTAGE) / 100;
+    $adminShare = ($totalAmount * self::ADMIN_PERCENTAGE) / 100;
+
+    return [
+      'owner_share' => round($ownerShare, 2),
+      'admin_share' => round($adminShare, 2),
+      'owner_percentage' => self::OWNER_PERCENTAGE,
+      'admin_percentage' => self::ADMIN_PERCENTAGE,
+    ];
+  }
+
+  /**
+   * Create revenue sharing record from rental
+   */
+  public static function createFromRental(\App\Models\Penyewaan $penyewaan): self
+  {
+    $sharing = self::calculateSharing($penyewaan->harga);
+
+    return self::create([
+      'penyewaan_id' => $penyewaan->id,
+      'pemilik_id' => $penyewaan->motor->pemilik_id,
+      'total_pendapatan' => $penyewaan->harga,
+      'bagi_hasil_pemilik' => $sharing['owner_share'],
+      'bagi_hasil_admin' => $sharing['admin_share'],
+      'tanggal' => now(),
+    ]);
   }
 }

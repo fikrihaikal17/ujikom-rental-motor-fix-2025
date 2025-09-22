@@ -12,18 +12,19 @@ class MotorVerificationController extends Controller
   public function index()
   {
     // Get motors that need verification (pending status)
-    $pendingMotors = Motor::where('status', 'pending')
+    $pendingMotors = Motor::where('status', \App\Enums\MotorStatus::PENDING)
       ->with(['owner', 'tarifRental'])
       ->latest()
       ->paginate(10, ['*'], 'pending');
 
     // Get all motors for overview
-    $verifiedMotors = Motor::where('status', 'verified')
+    $verifiedMotors = Motor::where('status', \App\Enums\MotorStatus::VERIFIED)
       ->with(['owner', 'tarifRental'])
       ->latest()
       ->paginate(10, ['*'], 'verified');
 
-    $rejectedMotors = Motor::where('status', 'rejected')
+    $rejectedMotors = Motor::where('status', \App\Enums\MotorStatus::PENDING)
+      ->whereNotNull('admin_notes')
       ->with(['owner', 'tarifRental'])
       ->latest()
       ->paginate(10, ['*'], 'rejected');
@@ -31,9 +32,9 @@ class MotorVerificationController extends Controller
     // Statistics
     $stats = [
       'total' => Motor::count(),
-      'pending' => Motor::where('status', 'pending')->count(),
-      'verified' => Motor::where('status', 'verified')->count(),
-      'rejected' => Motor::where('status', 'rejected')->count(),
+      'pending' => Motor::where('status', \App\Enums\MotorStatus::PENDING)->count(),
+      'verified' => Motor::where('status', \App\Enums\MotorStatus::VERIFIED)->count(),
+      'rejected' => Motor::where('status', \App\Enums\MotorStatus::PENDING)->whereNotNull('admin_notes')->count(),
     ];
 
     return view('admin.motors.index', compact('pendingMotors', 'verifiedMotors', 'rejectedMotors', 'stats'));
@@ -48,18 +49,33 @@ class MotorVerificationController extends Controller
   public function verify(Request $request, Motor $motor)
   {
     $request->validate([
-      'notes' => 'nullable|string|max:500'
+      'notes' => 'nullable|string|max:500',
+      'tarif_harian' => 'required|numeric|min:0',
+      'tarif_mingguan' => 'required|numeric|min:0',
+      'tarif_bulanan' => 'required|numeric|min:0'
     ]);
 
+    // Update motor status
     $motor->update([
-      'status' => 'verified',
+      'status' => \App\Enums\MotorStatus::VERIFIED,
       'admin_notes' => $request->notes,
       'verified_at' => now(),
       'verified_by' => Auth::id()
     ]);
 
+    // Create or update tarif rental
+    $motor->tarifRental()->updateOrCreate(
+      ['motor_id' => $motor->id],
+      [
+        'tarif_harian' => $request->tarif_harian,
+        'tarif_mingguan' => $request->tarif_mingguan,
+        'tarif_bulanan' => $request->tarif_bulanan,
+        'is_active' => true,
+      ]
+    );
+
     return redirect()->route('admin.motors.index')
-      ->with('success', "Motor {$motor->merk} {$motor->model} berhasil diverifikasi.");
+      ->with('success', "Motor {$motor->merk} {$motor->model} berhasil diverifikasi dengan harga sewa yang telah ditetapkan.");
   }
 
   public function reject(Request $request, Motor $motor)
@@ -69,7 +85,7 @@ class MotorVerificationController extends Controller
     ]);
 
     $motor->update([
-      'status' => 'rejected',
+      'status' => \App\Enums\MotorStatus::PENDING, // Keep as pending for re-review
       'admin_notes' => $request->notes,
       'verified_at' => null,
       'verified_by' => null

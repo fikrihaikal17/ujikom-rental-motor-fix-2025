@@ -153,7 +153,7 @@ class TarifRental extends Model
   {
     $avgPrices = static::whereHas('motor', function ($query) {
       $query->where('tipe_cc', $this->motor->tipe_cc)
-        ->where('status', 'available');
+        ->where('status', \App\Enums\MotorStatus::AVAILABLE);
     })->where('is_active', true)
       ->selectRaw('AVG(tarif_harian) as avg_harian, AVG(tarif_mingguan) as avg_mingguan, AVG(tarif_bulanan) as avg_bulanan')
       ->first();

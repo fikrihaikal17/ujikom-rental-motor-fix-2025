@@ -9,6 +9,20 @@ use Illuminate\Notifications\Notifiable;
 use App\Enums\UserRole;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * @property int $id
+ * @property string $nama
+ * @property string $email
+ * @property string $no_tlpn
+ * @property string $password
+ * @property UserRole $role
+ * @property string|null $alamat
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, Motor> $motors
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, Penyewaan> $penyewaans
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, BagiHasil> $bagiHasils
+ */
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
@@ -25,6 +39,7 @@ class User extends Authenticatable
         'no_tlpn',
         'password',
         'role',
+        'alamat',
     ];
 
     /**

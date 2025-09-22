@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Form Upload Test</title>
+  <style>
+    body {
+      font-family: Arial;
+      margin: 20px;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+
+    input,
+    select,
+    textarea {
+      width: 300px;
+      padding: 5px;
+    }
+
+    button {
+      padding: 10px 20px;
+      background: #007bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    .error {
+      color: red;
+    }
+
+    .success {
+      color: green;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Test Upload Gambar Motor</h1>
+
+  <form action="/owner/motors" method="POST" enctype="multipart/form-data">
+    <input type="hidden" name="_token" value="test-token">
+
+    <div class="form-group">
+      <label>Nama Motor *</label>
+      <input type="text" name="nama_motor" value="Honda Beat Test" required>
+    </div>
+
+    <div class="form-group">
+      <label>Merk *</label>
+      <select name="merk" required>
+        <option value="">Pilih Merk</option>
+        <option value="Honda" selected>Honda</option>
+        <option value="Yamaha">Yamaha</option>
+        <option value="Suzuki">Suzuki</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>Model *</label>
+      <input type="text" name="model" value="Beat Street" required>
+    </div>
+
+    <div class="form-group">
+      <label>Tahun *</label>
+      <select name="tahun" required>
+        <option value="">Pilih Tahun</option>
+        <option value="2023" selected>2023</option>
+        <option value="2022">2022</option>
+        <option value="2021">2021</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>Plat Nomor *</label>
+      <input type="text" name="plat_nomor" value="B 9999 TEST" required>
+    </div>
+
+    <div class="form-group">
+      <label>Kapasitas Mesin *</label>
+      <select name="kapasitas_mesin" required>
+        <option value="">Pilih CC</option>
+        <option value="100">100 CC</option>
+        <option value="125" selected>125 CC</option>
+        <option value="150">150 CC</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>Harga per Hari *</label>
+      <input type="text" name="harga_per_hari" value="75.000" required>
+    </div>
+
+    <div class="form-group">
+      <label>Deskripsi *</label>
+      <textarea name="deskripsi" rows="3"
+        required>Motor dalam kondisi baik, siap pakai untuk test upload gambar. Lorem ipsum dolor sit amet.</textarea>
+    </div>
+
+    <div class="form-group">
+      <label>Foto Motor * (JPG/PNG, max 2MB)</label>
+      <input type="file" name="foto_motor" accept="image/jpeg,image/png,image/jpg" required>
+      <small>Pilih gambar untuk di-upload</small>
+    </div>
+
+    <button type="submit">Submit & Test Upload</button>
+  </form>
+
+  <div style="margin-top: 20px;">
+    <h3>Debug Info:</h3>
+    <p>Server:
+      <?php echo $_SERVER['SERVER_NAME'] ?? 'Unknown'; ?>
+    </p>
+    <p>Time:
+      <?php echo date('Y-m-d H:i:s'); ?>
+    </p>
+    <p>Upload Max:
+      <?php echo ini_get('upload_max_filesize'); ?>
+    </p>
+    <p>Post Max:
+      <?php echo ini_get('post_max_size'); ?>
+    </p>
+  </div>
+</body>
+
+</html>

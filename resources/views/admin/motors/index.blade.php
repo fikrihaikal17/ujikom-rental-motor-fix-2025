@@ -1,7 +1,6 @@
 @extends('layouts.sidebar')
 
 @section('title', 'Verifikasi Motor')
-@section('page-title', 'Verifikasi Motor')
 
 @section('content')
 <!-- Header -->

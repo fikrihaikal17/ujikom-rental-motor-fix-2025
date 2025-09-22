@@ -113,6 +113,75 @@
       </main>
     </div>
   </div>
+
+  <!-- Timezone and Date Formatting Script -->
+  <script>
+    // Function to format datetime to user's local timezone
+    function formatToLocalTime(utcDate, format = 'full') {
+      const date = new Date(utcDate);
+      const options = {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
+      };
+
+      if (format === 'date') {
+        delete options.hour;
+        delete options.minute;
+      }
+
+      return date.toLocaleDateString('id-ID', options);
+    }
+
+    // Function to get relative time (e.g., "2 hours ago")
+    function getRelativeTime(utcDate) {
+      const date = new Date(utcDate);
+      const now = new Date();
+      const diffInMs = now - date;
+      const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
+      const diffInHours = Math.floor(diffInMinutes / 60);
+      const diffInDays = Math.floor(diffInHours / 24);
+
+      if (diffInMinutes < 1) return 'baru saja';
+      if (diffInMinutes < 60) return `${diffInMinutes} menit yang lalu`;
+      if (diffInHours < 24) return `${diffInHours} jam yang lalu`;
+      if (diffInDays < 7) return `${diffInDays} hari yang lalu`;
+
+      return formatToLocalTime(utcDate, 'date');
+    }
+
+    // Apply timezone formatting to all datetime elements
+    document.addEventListener('DOMContentLoaded', function() {
+      // Format all time elements with datetime attribute
+      document.querySelectorAll('time[datetime]').forEach(function(element) {
+        const utcDate = element.getAttribute('datetime');
+        const displayFormat = element.dataset.format || 'full';
+
+        if (displayFormat === 'relative') {
+          element.textContent = getRelativeTime(utcDate);
+        } else {
+          element.textContent = formatToLocalTime(utcDate, displayFormat);
+        }
+      });
+
+      // Format elements with class 'local-datetime'
+      document.querySelectorAll('.local-datetime').forEach(function(element) {
+        const utcDate = element.dataset.datetime;
+        const displayFormat = element.dataset.format || 'full';
+
+        if (utcDate) {
+          if (displayFormat === 'relative') {
+            element.textContent = getRelativeTime(utcDate);
+          } else {
+            element.textContent = formatToLocalTime(utcDate, displayFormat);
+          }
+        }
+      });
+    });
+  </script>
 </body>
 
 </html>

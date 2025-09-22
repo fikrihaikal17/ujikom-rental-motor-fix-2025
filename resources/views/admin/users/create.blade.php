@@ -1,7 +1,6 @@
 @extends('layouts.sidebar')
 
 @section('title', 'Tambah Pengguna')
-@section('page-title', 'Tambah Pengguna')
 
 @section('content')
 <!-- Header -->
@@ -48,10 +47,10 @@
 
         <!-- No Telepon -->
         <div>
-          <label for="no_telp" class="block text-sm font-medium text-gray-700">No. Telepon</label>
-          <input type="text" name="no_telp" id="no_telp" value="{{ old('no_telp') }}"
-            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm @error('no_telp') border-red-300 @enderror">
-          @error('no_telp')
+          <label for="no_tlpn" class="block text-sm font-medium text-gray-700">No. Telepon</label>
+          <input type="text" name="no_tlpn" id="no_tlpn" value="{{ old('no_tlpn') }}"
+            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm @error('no_tlpn') border-red-300 @enderror">
+          @error('no_tlpn')
           <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
           @enderror
         </div>
@@ -63,8 +62,8 @@
             class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm @error('role') border-red-300 @enderror">
             <option value="">Pilih Role</option>
             <option value="admin" {{ old('role') === 'admin' ? 'selected' : '' }}>Admin</option>
-            <option value="owner" {{ old('role') === 'owner' ? 'selected' : '' }}>Owner</option>
-            <option value="renter" {{ old('role') === 'renter' ? 'selected' : '' }}>Renter</option>
+            <option value="pemilik" {{ old('role') === 'pemilik' ? 'selected' : '' }}>Pemilik Kendaraan</option>
+            <option value="penyewa" {{ old('role') === 'penyewa' ? 'selected' : '' }}>Penyewa</option>
           </select>
           @error('role')
           <p class="mt-2 text-sm text-red-600">{{ $message }}</p>

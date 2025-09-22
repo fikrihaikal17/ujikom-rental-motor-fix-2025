@@ -7,6 +7,8 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class UserController extends Controller
 {
@@ -27,8 +29,8 @@ class UserController extends Controller
       'nama' => 'required|string|max:255',
       'email' => 'required|string|email|max:255|unique:users',
       'password' => 'required|string|min:8|confirmed',
-      'role' => 'required|in:admin,owner,renter',
-      'no_telp' => 'required|string|max:15',
+      'role' => 'required|in:admin,pemilik,penyewa',
+      'no_tlpn' => 'required|string|max:15',
       'alamat' => 'required|string',
     ]);
 
@@ -37,7 +39,7 @@ class UserController extends Controller
       'email' => $request->email,
       'password' => Hash::make($request->password),
       'role' => $request->role,
-      'no_telp' => $request->no_telp,
+      'no_tlpn' => $request->no_tlpn,
       'alamat' => $request->alamat,
     ]);
 
@@ -46,7 +48,25 @@ class UserController extends Controller
 
   public function show(User $user)
   {
-    return view('admin.users.show', compact('user'));
+    $data = ['user' => $user];
+
+    // If viewing admin user, get recent login sessions
+    if ($user->role->value === 'admin') {
+      $data['recentSessions'] = DB::table('sessions')
+        ->where('user_id', $user->id)
+        ->orderBy('last_activity', 'desc')
+        ->limit(5)
+        ->get()
+        ->map(function ($session) {
+          return [
+            'ip_address' => $session->ip_address,
+            'user_agent' => $session->user_agent,
+            'last_activity' => Carbon::createFromTimestamp($session->last_activity),
+          ];
+        });
+    }
+
+    return view('admin.users.show', $data);
   }
 
   public function edit(User $user)
@@ -59,8 +79,8 @@ class UserController extends Controller
     $request->validate([
       'nama' => 'required|string|max:255',
       'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
-      'role' => 'required|in:admin,owner,renter',
-      'no_telp' => 'required|string|max:15',
+      'role' => 'required|in:admin,pemilik,penyewa',
+      'no_tlpn' => 'required|string|max:15',
       'alamat' => 'required|string',
     ]);
 
@@ -68,7 +88,7 @@ class UserController extends Controller
       'nama' => $request->nama,
       'email' => $request->email,
       'role' => $request->role,
-      'no_telp' => $request->no_telp,
+      'no_tlpn' => $request->no_tlpn,
       'alamat' => $request->alamat,
     ];
 
@@ -116,7 +136,7 @@ class UserController extends Controller
           $user->id,
           $user->nama,
           $user->email,
-          ucfirst($user->role),
+          ucfirst($user->role->value),
           $user->no_telp,
           $user->alamat,
           $user->created_at->format('Y-m-d H:i:s'),

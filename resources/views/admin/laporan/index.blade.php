@@ -17,9 +17,7 @@
           <i class="fas fa-download mr-2"></i>Export Laporan
           <i class="fas fa-chevron-down ml-2"></i>
         </button>
-        <div x-show="open"
-          @click.away="open = false"
-          x-transition
+        <div x-show="open" @click.away="open = false" x-transition
           class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10">
           <div class="py-1">
             <a href="{{ route('admin.laporan.export', ['type' => 'revenue']) }}"
@@ -156,8 +154,7 @@
     <div class="bg-white rounded-lg shadow p-6">
       <div class="flex justify-between items-center mb-4">
         <h3 class="text-lg font-medium text-gray-900">Tren Revenue (12 Bulan Terakhir)</h3>
-        <a href="{{ route('admin.laporan.revenue') }}"
-          class="text-blue-600 hover:text-blue-800 text-sm">
+        <a href="{{ route('admin.laporan.revenue') }}" class="text-blue-600 hover:text-blue-800 text-sm">
           Lihat Detail →
         </a>
       </div>
@@ -170,82 +167,6 @@
         <h3 class="text-lg font-medium text-gray-900">Metode Pembayaran</h3>
       </div>
       <canvas id="paymentChart" height="300"></canvas>
-    </div>
-  </div>
-
-  <!-- Top Performing Motors -->
-  <div class="bg-white rounded-lg shadow">
-    <div class="px-6 py-4 border-b border-gray-200">
-      <div class="flex justify-between items-center">
-        <h3 class="text-lg font-medium text-gray-900">Motor Terpopuler</h3>
-        <a href="{{ route('admin.laporan.motors') }}"
-          class="text-blue-600 hover:text-blue-800 text-sm">
-          Lihat Semua →
-        </a>
-      </div>
-    </div>
-    <div class="overflow-x-auto">
-      <table class="min-w-full divide-y divide-gray-200">
-        <thead class="bg-gray-50">
-          <tr>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Motor</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pemilik</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Penyewaan</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tarif/Hari</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-          </tr>
-        </thead>
-        <tbody class="bg-white divide-y divide-gray-200">
-          @forelse($topMotors as $motor)
-          <tr>
-            <td class="px-6 py-4 whitespace-nowrap">
-              <div class="flex items-center">
-                <div class="h-10 w-10 flex-shrink-0">
-                  @if($motor->foto)
-                  <img class="h-10 w-10 rounded-full object-cover"
-                    src="{{ asset('storage/' . $motor->foto) }}"
-                    alt="{{ $motor->merk }}">
-                  @else
-                  <div class="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">
-                    <i class="fas fa-motorcycle text-gray-500"></i>
-                  </div>
-                  @endif
-                </div>
-                <div class="ml-4">
-                  <div class="text-sm font-medium text-gray-900">{{ $motor->merk }} {{ $motor->model }}</div>
-                  <div class="text-sm text-gray-500">{{ $motor->plat_nomor }}</div>
-                </div>
-              </div>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $motor->owner->name }}</td>
-            <td class="px-6 py-4 whitespace-nowrap">
-              <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                {{ $motor->rental_count }} kali
-              </span>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-              @if($motor->tarifRental)
-              Rp {{ number_format($motor->tarifRental->harga_per_hari, 0, ',', '.') }}
-              @else
-              <span class="text-gray-400">Belum diatur</span>
-              @endif
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap">
-              <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                                {{ $motor->ketersediaan === 'tersedia' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
-                {{ ucfirst($motor->ketersediaan) }}
-              </span>
-            </td>
-          </tr>
-          @empty
-          <tr>
-            <td colspan="5" class="px-6 py-4 text-center text-gray-500">
-              Belum ada data motor
-            </td>
-          </tr>
-          @endforelse
-        </tbody>
-      </table>
     </div>
   </div>
 
@@ -294,9 +215,10 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-  document.addEventListener('DOMContentLoaded', function() {
+  document.addEventListener('DOMContentLoaded', function () {
     // Revenue Trend Chart
     const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+    // eslint-disable-next-line
     const revenueData = @json($revenueTrend);
 
     new Chart(revenueCtx, {
@@ -320,7 +242,7 @@
           y: {
             beginAtZero: true,
             ticks: {
-              callback: function(value) {
+              callback: function (value) {
                 return 'Rp ' + value.toLocaleString('id-ID');
               }
             }
@@ -329,7 +251,7 @@
         plugins: {
           tooltip: {
             callbacks: {
-              label: function(context) {
+              label: function (context) {
                 return 'Revenue: Rp ' + context.parsed.y.toLocaleString('id-ID');
               }
             }
@@ -340,6 +262,7 @@
 
     // Payment Methods Chart
     const paymentCtx = document.getElementById('paymentChart').getContext('2d');
+    // eslint-disable-next-line
     const paymentData = @json($paymentMethods);
 
     new Chart(paymentCtx, {
@@ -363,7 +286,7 @@
         plugins: {
           tooltip: {
             callbacks: {
-              label: function(context) {
+              label: function (context) {
                 const total = context.dataset.data.reduce((a, b) => a + b, 0);
                 const percentage = ((context.parsed / total) * 100).toFixed(1);
                 return context.label + ': Rp ' + context.parsed.toLocaleString('id-ID') + ' (' + percentage + '%)';

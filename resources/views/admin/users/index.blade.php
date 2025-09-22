@@ -1,7 +1,6 @@
 @extends('layouts.sidebar')
 
 @section('title', 'Kelola Pengguna')
-@section('page-title', 'Kelola Pengguna')
 
 @section('content')
 <!-- Header -->
@@ -71,8 +70,8 @@
         <select name="role" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm">
           <option value="">Semua Role</option>
           <option value="admin">Admin</option>
-          <option value="owner">Owner</option>
-          <option value="renter">Renter</option>
+          <option value="pemilik">Pemilik Kendaraan</option>
+          <option value="penyewa">Penyewa</option>
         </select>
       </div>
     </div>
@@ -118,16 +117,16 @@
             <td class="px-6 py-4 whitespace-nowrap">
               <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full 
                                 {{ $user->role->value === 'admin' ? 'bg-purple-100 text-purple-800' : 
-                                   ($user->role->value === 'owner' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800') }}">
-                {{ ucfirst($user->role->value) }}
+                                   ($user->role->value === 'pemilik' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800') }}">
+                {{ $user->role->getDisplayName() }}
               </span>
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-              <div>{{ $user->no_telp }}</div>
+              <div>{{ $user->no_tlpn }}</div>
               <div class="text-gray-500 text-xs">{{ Str::limit($user->alamat, 30) }}</div>
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-              {{ $user->created_at->format('d M Y') }}
+              <time datetime="{{ $user->created_at->toISOString() }}" data-format="date">{{ $user->created_at->format('d M Y') }}</time>
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
               <div class="flex items-center justify-end space-x-2">
