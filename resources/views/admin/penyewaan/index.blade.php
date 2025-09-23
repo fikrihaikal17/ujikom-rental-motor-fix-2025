@@ -1,27 +1,22 @@
 @extends('layouts.sidebar')
 
-@section('title', 'Kelola Penyewaan')
+@section('title', 'Verifikasi Penyewaan')
 
 @section('content')
 <!-- Header -->
 <div class="mb-8">
   <div class="sm:flex sm:items-center">
     <div class="sm:flex-auto">
-      <h1 class="text-2xl font-semibold text-gray-900">Kelola Penyewaan</h1>
-      <p class="mt-2 text-sm text-gray-700">Kelola semua data penyewaan motor dalam sistem.</p>
+      <h1 class="text-2xl font-semibold text-gray-900">Verifikasi Penyewaan</h1>
+      <p class="mt-2 text-sm text-gray-700">Kelola dan verifikasi permintaan penyewaan motor dari penyewa.</p>
     </div>
-    <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none space-x-3 flex">
-      <a href="{{ route('admin.penyewaan.export') }}" class="inline-flex items-center justify-center rounded-md border border-transparent bg-green-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 sm:w-auto">
+    <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex sm:space-x-3">
+      <!-- PDF Export Button -->
+      <a href="{{ route('admin.penyewaan.export.pdf', request()->query()) }}" class="inline-flex items-center justify-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
         <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
         </svg>
-        Export Riwayat
-      </a>
-      <a href="{{ route('admin.penyewaan.create') }}" class="inline-flex items-center justify-center rounded-md border border-transparent bg-primary-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 sm:w-auto">
-        <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-        </svg>
-        Tambah Penyewaan
+        Export PDF
       </a>
     </div>
   </div>
@@ -56,7 +51,7 @@
         <div class="ml-5 w-0 flex-1">
           <dl>
             <dt class="text-sm font-medium text-gray-500 truncate">Total Penyewaan</dt>
-            <dd class="text-lg font-medium text-gray-900">{{ $stats['total'] ?? 0 }}</dd>
+            <dd class="text-lg font-medium text-gray-900">{{ $totalPenyewaan }}</dd>
           </dl>
         </div>
       </div>
@@ -67,14 +62,14 @@
     <div class="p-5">
       <div class="flex items-center">
         <div class="flex-shrink-0">
-          <svg class="h-6 w-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="h-6 w-6 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
           </svg>
         </div>
         <div class="ml-5 w-0 flex-1">
           <dl>
-            <dt class="text-sm font-medium text-gray-500 truncate">Sedang Berjalan</dt>
-            <dd class="text-lg font-medium text-gray-900">{{ $stats['active'] ?? 0 }}</dd>
+            <dt class="text-sm font-medium text-gray-500 truncate">Menunggu Verifikasi</dt>
+            <dd class="text-lg font-medium text-gray-900">{{ $pendingPenyewaan }}</dd>
           </dl>
         </div>
       </div>
@@ -91,8 +86,8 @@
         </div>
         <div class="ml-5 w-0 flex-1">
           <dl>
-            <dt class="text-sm font-medium text-gray-500 truncate">Selesai</dt>
-            <dd class="text-lg font-medium text-gray-900">{{ $stats['completed'] ?? 0 }}</dd>
+            <dt class="text-sm font-medium text-gray-500 truncate">Aktif</dt>
+            <dd class="text-lg font-medium text-green-600">{{ $activePenyewaan }}</dd>
           </dl>
         </div>
       </div>
@@ -103,14 +98,14 @@
     <div class="p-5">
       <div class="flex items-center">
         <div class="flex-shrink-0">
-          <svg class="h-6 w-6 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          <svg class="h-6 w-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
           </svg>
         </div>
         <div class="ml-5 w-0 flex-1">
           <dl>
-            <dt class="text-sm font-medium text-gray-500 truncate">Bermasalah</dt>
-            <dd class="text-lg font-medium text-gray-900">{{ $stats['issues'] ?? 0 }}</dd>
+            <dt class="text-sm font-medium text-gray-500 truncate">Selesai</dt>
+            <dd class="text-lg font-medium text-gray-900">{{ $completedPenyewaan }}</dd>
           </dl>
         </div>
       </div>
@@ -189,31 +184,31 @@
         @foreach($penyewaans as $penyewaan)
         <tr class="hover:bg-gray-50">
           <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-            {{ $penyewaan->kode_booking }}
+            {{ $penyewaan->booking_code }}
           </td>
           <td class="px-6 py-4 whitespace-nowrap">
             <div class="flex items-center">
               <div class="flex-shrink-0 h-10 w-10">
                 <div class="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">
-                  <span class="text-sm font-medium text-gray-700">{{ substr($penyewaan->user->nama, 0, 1) }}</span>
+                  <span class="text-sm font-medium text-gray-700">{{ substr($penyewaan->penyewa->name, 0, 1) }}</span>
                 </div>
               </div>
               <div class="ml-4">
-                <div class="text-sm font-medium text-gray-900">{{ $penyewaan->user->nama }}</div>
-                <div class="text-sm text-gray-500">{{ $penyewaan->user->email }}</div>
+                <div class="text-sm font-medium text-gray-900">{{ $penyewaan->penyewa->name }}</div>
+                <div class="text-sm text-gray-500">{{ $penyewaan->penyewa->email }}</div>
               </div>
             </div>
           </td>
           <td class="px-6 py-4 whitespace-nowrap">
             <div class="text-sm font-medium text-gray-900">{{ $penyewaan->motor->merk }} {{ $penyewaan->motor->model }}</div>
-            <div class="text-sm text-gray-500">{{ $penyewaan->motor->no_polisi }}</div>
+            <div class="text-sm text-gray-500">{{ $penyewaan->motor->no_plat }}</div>
           </td>
           <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
             <div>{{ \Carbon\Carbon::parse($penyewaan->tanggal_mulai)->format('d/m/Y') }}</div>
             <div class="text-gray-500">s/d {{ \Carbon\Carbon::parse($penyewaan->tanggal_selesai)->format('d/m/Y') }}</div>
           </td>
           <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-            Rp {{ number_format($penyewaan->total_biaya, 0, ',', '.') }}
+            Rp {{ number_format($penyewaan->harga, 0, ',', '.') }}
           </td>
           <td class="px-6 py-4 whitespace-nowrap">
             @php
@@ -237,27 +232,38 @@
             </span>
           </td>
           <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-            <div class="flex items-center space-x-2">
+            <div class="flex items-center justify-end space-x-2">
               <a href="{{ route('admin.penyewaan.show', $penyewaan) }}" class="text-primary-600 hover:text-primary-900">
-                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                </svg>
+                Detail
               </a>
-              <a href="{{ route('admin.penyewaan.edit', $penyewaan) }}" class="text-indigo-600 hover:text-indigo-900">
-                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                </svg>
-              </a>
-              <form method="POST" action="{{ route('admin.penyewaan.destroy', $penyewaan) }}" class="inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus penyewaan ini?')">
+
+              @if($penyewaan->status->value === 'pending')
+              <!-- Tombol Terima untuk status pending -->
+              <form method="POST" action="{{ route('admin.penyewaan.update-status', $penyewaan) }}" class="inline">
                 @csrf
-                @method('DELETE')
-                <button type="submit" class="text-red-600 hover:text-red-900">
-                  <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                @method('PATCH')
+                <input type="hidden" name="status" value="confirmed">
+                <button type="submit" class="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500" onclick="return confirm('Terima penyewaan ini?')">
+                  <svg class="-ml-0.5 mr-1 h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                   </svg>
+                  Terima
                 </button>
               </form>
+
+              <!-- Tombol Tolak untuk status pending -->
+              <form method="POST" action="{{ route('admin.penyewaan.update-status', $penyewaan) }}" class="inline">
+                @csrf
+                @method('PATCH')
+                <input type="hidden" name="status" value="cancelled">
+                <button type="submit" class="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500" onclick="return confirm('Tolak penyewaan ini?')">
+                  <svg class="-ml-0.5 mr-1 h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                  </svg>
+                  Tolak
+                </button>
+              </form>
+              @endif
             </div>
           </td>
         </tr>
@@ -278,15 +284,7 @@
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
     </svg>
     <h3 class="mt-2 text-sm font-medium text-gray-900">Tidak ada penyewaan</h3>
-    <p class="mt-1 text-sm text-gray-500">Mulai dengan menambahkan penyewaan baru.</p>
-    <div class="mt-6">
-      <a href="{{ route('admin.penyewaan.create') }}" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
-        <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-        </svg>
-        Tambah Penyewaan
-      </a>
-    </div>
+    <p class="mt-1 text-sm text-gray-500">Belum ada permintaan penyewaan yang perlu diverifikasi.</p>
   </div>
   @endif
 </div>

@@ -17,41 +17,41 @@
 
   <!-- Status Banner -->
   <div class="mb-6 p-4 rounded-lg border-l-4
-        @if($booking->status->value == 'pending') bg-yellow-50 border-yellow-400
-        @elseif($booking->status->value == 'confirmed') bg-green-50 border-green-400
-        @elseif($booking->status->value == 'active') bg-blue-50 border-blue-400
-        @elseif($booking->status->value == 'completed') bg-gray-50 border-gray-400
+        @if($booking->status === \App\Enums\BookingStatus::PENDING) bg-yellow-50 border-yellow-400
+        @elseif($booking->status === \App\Enums\BookingStatus::CONFIRMED) bg-green-50 border-green-400
+        @elseif($booking->status === \App\Enums\BookingStatus::ACTIVE) bg-blue-50 border-blue-400
+        @elseif($booking->status === \App\Enums\BookingStatus::COMPLETED) bg-gray-50 border-gray-400
         @else bg-red-50 border-red-400 @endif">
     <div class="flex items-center">
       <div class="flex-1">
         <h3 class="text-lg font-medium
-                    @if($booking->status->value == 'pending') text-yellow-800
-                    @elseif($booking->status->value == 'confirmed') text-green-800
-                    @elseif($booking->status->value == 'active') text-blue-800
-                    @elseif($booking->status->value == 'completed') text-gray-800
+                    @if($booking->status === \App\Enums\BookingStatus::PENDING) text-yellow-800
+                    @elseif($booking->status === \App\Enums\BookingStatus::CONFIRMED) text-green-800
+                    @elseif($booking->status === \App\Enums\BookingStatus::ACTIVE) text-blue-800
+                    @elseif($booking->status === \App\Enums\BookingStatus::COMPLETED) text-gray-800
                     @else text-red-800 @endif">
-          Status: {{ ucfirst($booking->status->value) }}
+          Status: {{ $booking->status->getDisplayName() }}
         </h3>
         <p class="text-sm
-                    @if($booking->status->value == 'pending') text-yellow-700
-                    @elseif($booking->status->value == 'confirmed') text-green-700
-                    @elseif($booking->status->value == 'active') text-blue-700
-                    @elseif($booking->status->value == 'completed') text-gray-700
+                    @if($booking->status === \App\Enums\BookingStatus::PENDING) text-yellow-700
+                    @elseif($booking->status === \App\Enums\BookingStatus::CONFIRMED) text-green-700
+                    @elseif($booking->status === \App\Enums\BookingStatus::ACTIVE) text-blue-700
+                    @elseif($booking->status === \App\Enums\BookingStatus::COMPLETED) text-gray-700
                     @else text-red-700 @endif">
-          @if($booking->status->value == 'pending')
+          @if($booking->status === \App\Enums\BookingStatus::PENDING)
           Booking Anda sedang menunggu konfirmasi dari admin
-          @elseif($booking->status->value == 'confirmed')
+          @elseif($booking->status === \App\Enums\BookingStatus::CONFIRMED)
           Booking telah dikonfirmasi, silakan ambil motor sesuai jadwal
-          @elseif($booking->status->value == 'active')
-          Motor sedang dalam masa rental
-          @elseif($booking->status->value == 'completed')
-          Rental telah selesai
+          @elseif($booking->status === \App\Enums\BookingStatus::ACTIVE)
+          Motor sedang dalam masa rental. Jangan lupa konfirmasi pengembalian melalui tombol di bawah setelah mengembalikan motor.
+          @elseif($booking->status === \App\Enums\BookingStatus::COMPLETED)
+          Rental telah selesai. Terima kasih telah menggunakan layanan kami!
           @else
           Booking telah dibatalkan
           @endif
         </p>
       </div>
-      @if($booking->status->value == 'pending')
+      @if($booking->status === \App\Enums\BookingStatus::PENDING)
       <form action="{{ route('renter.bookings.cancel', $booking) }}" method="POST" class="ml-4">
         @csrf
         @method('PATCH')
@@ -59,6 +59,28 @@
           onclick="return confirm('Yakin ingin membatalkan booking ini?')"
           class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 text-sm">
           Batalkan Booking
+        </button>
+      </form>
+      @elseif($booking->status === \App\Enums\BookingStatus::CONFIRMED)
+      <div class="ml-4 text-sm text-green-700">
+        <div class="flex items-center">
+          <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          Booking dikonfirmasi! Silakan hubungi admin untuk mengambil motor.
+        </div>
+      </div>
+      @elseif($booking->status === \App\Enums\BookingStatus::ACTIVE)
+      <form action="{{ route('renter.bookings.confirm-return', $booking) }}" method="POST" class="ml-4">
+        @csrf
+        @method('PATCH')
+        <button type="submit"
+          onclick="return confirm('Apakah Anda yakin sudah mengembalikan motor dengan kondisi baik?')"
+          class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 text-sm">
+          <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          Konfirmasi Pengembalian
         </button>
       </form>
       @endif
@@ -76,8 +98,8 @@
           <div class="flex">
             <!-- Motor Image -->
             <div class="w-32 h-32 bg-gray-300 rounded-lg mr-6 flex-shrink-0">
-              @if($booking->motor->foto_motor)
-              <img src="{{ asset('storage/' . $booking->motor->foto_motor) }}"
+              @if($booking->motor->photo)
+              <img src="{{ asset('storage/' . $booking->motor->photo) }}"
                 alt="{{ $booking->motor->nama_motor }}"
                 class="w-full h-full object-cover rounded-lg">
               @else
@@ -96,15 +118,15 @@
               <div class="grid grid-cols-2 gap-4 text-sm">
                 <div>
                   <span class="text-gray-500">Merek:</span>
-                  <div class="font-medium">{{ $booking->motor->merek }}</div>
+                  <div class="font-medium">{{ $booking->motor->merk }}</div>
                 </div>
                 <div>
                   <span class="text-gray-500">Tahun:</span>
-                  <div class="font-medium">{{ $booking->motor->tahun_produksi }}</div>
+                  <div class="font-medium">{{ $booking->motor->tahun }}</div>
                 </div>
                 <div>
                   <span class="text-gray-500">Plat Nomor:</span>
-                  <div class="font-medium">{{ $booking->motor->plat_nomor }}</div>
+                  <div class="font-medium">{{ $booking->motor->no_plat }}</div>
                 </div>
                 <div>
                   <span class="text-gray-500">Warna:</span>
@@ -117,8 +139,8 @@
                 <div>
                   <span class="text-gray-500">Status Motor:</span>
                   <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                                        @if($booking->motor->status?->value == 'available') bg-green-100 text-green-800
-                                        @elseif($booking->motor->status?->value == 'rented') bg-blue-100 text-blue-800
+                                        @if($booking->motor->status?->value == 'verified') bg-green-100 text-green-800
+                                        @elseif($booking->motor->status?->value == 'pending') bg-yellow-100 text-yellow-800
                                         @else bg-red-100 text-red-800 @endif">
                     {{ ucfirst($booking->motor->status?->value ?? 'N/A') }}
                   </span>
@@ -246,12 +268,29 @@
               Kembali ke Daftar Booking
             </a>
 
+            @if($booking->status === \App\Enums\BookingStatus::ACTIVE)
+            <form action="{{ route('renter.bookings.confirm-return', $booking) }}" method="POST" class="w-full">
+              @csrf
+              @method('PATCH')
+              <button type="submit"
+                onclick="return confirm('Apakah Anda yakin sudah mengembalikan motor dengan kondisi baik? Motor akan ditandai sebagai selesai disewa.')"
+                class="w-full bg-green-100 text-green-700 px-4 py-2 rounded-lg hover:bg-green-200 text-center">
+                <div class="flex items-center justify-center">
+                  <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  </svg>
+                  Konfirmasi Pengembalian Motor
+                </div>
+              </button>
+            </form>
+            @endif
+
             <a href="{{ route('renter.motors.show', $booking->motor) }}"
               class="w-full bg-blue-100 text-blue-700 px-4 py-2 rounded-lg hover:bg-blue-200 text-center block">
               Lihat Detail Motor
             </a>
 
-            @if($booking->status->value == 'completed')
+            @if($booking->status === \App\Enums\BookingStatus::COMPLETED)
             <a href="{{ route('renter.motors.index') }}"
               class="w-full bg-green-100 text-green-700 px-4 py-2 rounded-lg hover:bg-green-200 text-center block">
               Booking Motor Lagi
@@ -299,7 +338,26 @@
                   @if($booking->status->value == 'completed') Rental Selesai @else Rental Dimulai @endif
                 </div>
                 <div class="text-xs text-gray-500">
+                  @if($booking->status->value == 'completed' && $booking->completed_at)
+                  {{ \Carbon\Carbon::parse($booking->completed_at)->format('d M Y H:i') }}
+                  @else
                   {{ \Carbon\Carbon::parse($booking->tanggal_mulai)->format('d M Y') }}
+                  @endif
+                </div>
+              </div>
+            </div>
+            @endif
+
+            @if($booking->status->value == 'active')
+            <div class="flex items-start">
+              <div class="flex-shrink-0 w-2 h-2 bg-orange-600 rounded-full mt-2"></div>
+              <div class="ml-4">
+                <div class="text-sm font-medium text-gray-900">Periode Berakhir</div>
+                <div class="text-xs text-gray-500">
+                  {{ \Carbon\Carbon::parse($booking->tanggal_selesai)->format('d M Y') }}
+                </div>
+                <div class="text-xs text-orange-600 mt-1">
+                  <strong>Catatan:</strong> Silakan konfirmasi pengembalian motor melalui tombol di atas
                 </div>
               </div>
             </div>

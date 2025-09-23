@@ -157,19 +157,19 @@
       <!-- License Plate -->
       <div class="space-y-2">
         <label for="no_plat" class="block text-sm font-semibold text-gray-700">
-          Plat Nomor <span class="text-red-500">*</span>
+          Plat Nomor
         </label>
         <div class="relative">
-          <input type="text" name="no_plat" id="no_plat" value="{{ old('no_plat') }}" required
+          <input type="text" name="no_plat" id="no_plat" value="{{ old('no_plat') }}"
             class="w-full pl-4 pr-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 @error('no_plat') border-red-400 focus:border-red-500 focus:ring-red-500 @enderror uppercase tracking-wider font-mono"
-            placeholder="B 1234 XYZ" maxlength="11">
+            placeholder="B 1234 XYZ (Opsional)" maxlength="12">
           <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
             <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
             </svg>
           </div>
         </div>
-        <p class="text-xs text-gray-500 mt-1">Format: Huruf Angka Huruf (contoh: B 1234 XYZ)</p>
+        <p class="text-xs text-gray-500 mt-1">Format: 1-2 Huruf + 4 Angka + 1-3 Huruf (contoh: B 1234 XYZ atau AB 1234 C). Opsional - bisa dikosongkan jika belum ada plat nomor.</p>
         @error('no_plat')
         <p class="text-sm text-red-500 flex items-center">
           <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
@@ -263,10 +263,32 @@
           </p>
           @enderror
         </div>
-        <div class="flex items-center">
+        <div class="space-y-4">
           <div class="bg-white p-4 rounded-lg border border-gray-200 w-full">
-            <p class="text-sm text-gray-600 mb-1">💡 Info Bagi Hasil</p>
-            <p class="text-xs text-gray-500">Harga akan dibagi sesuai kesepakatan bagi hasil dengan platform</p>
+            <p class="text-sm text-gray-600 mb-2">💡 Info Bagi Hasil</p>
+            <p class="text-xs text-gray-500 mb-3">Sistem default: 70% untuk Pemilik, 30% untuk Platform</p>
+
+            <div class="space-y-3">
+              <div>
+                <label for="requested_owner_percentage" class="block text-xs font-medium text-gray-700 mb-1">
+                  Request Persentase Bagi Hasil Anda (%)
+                </label>
+                <input type="number" name="requested_owner_percentage" id="requested_owner_percentage"
+                  value="{{ old('requested_owner_percentage', 70) }}"
+                  min="50" max="90" step="5"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm">
+                <p class="text-xs text-gray-500 mt-1">Minimum 50%, maksimum 90%. Admin akan review dan konfirmasi.</p>
+              </div>
+
+              <div>
+                <label for="revenue_sharing_notes" class="block text-xs font-medium text-gray-700 mb-1">
+                  Alasan Request (Opsional)
+                </label>
+                <textarea name="revenue_sharing_notes" id="revenue_sharing_notes" rows="2"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm resize-none"
+                  placeholder="Jelaskan mengapa Anda meminta persentase tersebut...">{{ old('revenue_sharing_notes') }}</textarea>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -686,36 +708,43 @@
       }
     });
 
-    // Auto format license plate with spaces and validation
+    // Auto format license plate with spaces and validation (flexible format)
     const platNomorInput = document.getElementById('no_plat');
     platNomorInput.addEventListener('input', function(e) {
       let value = e.target.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
 
-      // Format: Letter(s) + Space + Numbers + Space + Letters
+      // Skip formatting if empty (since it's optional now)
+      if (value.length === 0) {
+        e.target.value = '';
+        e.target.style.borderColor = '';
+        return;
+      }
+
+      // Format: 1-2 Letters + Space + 4 Numbers + Space + 1-3 Letters
       let formatted = '';
 
       if (value.length > 0) {
         // First part: 1-2 letters
         let firstPart = value.substring(0, Math.min(value.length, 2));
-        if (!/^[A-Z]+$/.test(firstPart) && value.length <= 2) {
-          // Only allow letters for first part
-          firstPart = firstPart.replace(/[^A-Z]/g, '');
-        }
+        // Filter out numbers from first part
+        firstPart = firstPart.replace(/[^A-Z]/g, '');
         formatted += firstPart;
 
-        if (value.length > 2) {
+        if (value.length > firstPart.length && firstPart.length > 0) {
           formatted += ' ';
 
-          // Second part: up to 4 numbers
-          let secondPart = value.substring(2, Math.min(value.length, 6));
+          // Second part: exactly 4 numbers
+          let numberStart = firstPart.length;
+          let secondPart = value.substring(numberStart, Math.min(value.length, numberStart + 4));
           secondPart = secondPart.replace(/[^0-9]/g, '');
           formatted += secondPart;
 
-          if (value.length > 6) {
+          if (value.length > numberStart + 4 && secondPart.length === 4) {
             formatted += ' ';
 
             // Third part: 1-3 letters
-            let thirdPart = value.substring(6, Math.min(value.length, 9));
+            let letterStart = numberStart + 4;
+            let thirdPart = value.substring(letterStart, Math.min(value.length, letterStart + 3));
             thirdPart = thirdPart.replace(/[^A-Z]/g, '');
             formatted += thirdPart;
           }
@@ -724,12 +753,16 @@
 
       e.target.value = formatted;
 
-      // Validate format
-      const pattern = /^[A-Z]{1,2} \d{1,4} [A-Z]{1,3}$/;
-      const isValid = pattern.test(formatted) || formatted.length < 4;
+      // Validate format (only if not empty, since it's optional)
+      if (formatted.length > 0) {
+        const pattern = /^[A-Z]{1,2} \d{4} [A-Z]{1,3}$/;
+        const isValid = pattern.test(formatted);
 
-      if (!isValid && formatted.length >= 4) {
-        e.target.style.borderColor = '#ef4444';
+        if (!isValid) {
+          e.target.style.borderColor = '#ef4444';
+        } else {
+          e.target.style.borderColor = '#10b981';
+        }
       } else {
         e.target.style.borderColor = '';
       }
@@ -753,10 +786,6 @@
         {
           id: 'tahun',
           name: 'Tahun'
-        },
-        {
-          id: 'no_plat',
-          name: 'Plat Nomor'
         },
         {
           id: 'tipe_cc',

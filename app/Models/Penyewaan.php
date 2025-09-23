@@ -76,6 +76,14 @@ class Penyewaan extends Model
   }
 
   /**
+   * Get all payments for this booking
+   */
+  public function payments(): HasMany
+  {
+    return $this->hasMany(\App\Models\Payment::class);
+  }
+
+  /**
    * Get the revenue sharing for this booking
    */
   public function bagiHasil(): HasOne

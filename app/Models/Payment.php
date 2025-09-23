@@ -82,7 +82,7 @@ class Payment extends Model
      */
     public function getPaymentMethodDisplayAttribute(): string
     {
-        return match($this->payment_method) {
+        return match ($this->payment_method) {
             'transfer' => 'Transfer Bank',
             'cash' => 'Tunai',
             default => ucfirst($this->payment_method)
@@ -94,7 +94,7 @@ class Payment extends Model
      */
     public function getStatusDisplayAttribute(): array
     {
-        return match($this->status) {
+        return match ($this->status) {
             'pending' => [
                 'text' => 'Menunggu Verifikasi',
                 'color' => 'yellow'

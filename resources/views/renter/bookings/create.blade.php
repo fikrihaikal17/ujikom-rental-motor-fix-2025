@@ -64,6 +64,9 @@
               </div>
               @endif
             </div>
+            <p class="text-xs text-gray-500 mt-2">
+              * Harga otomatis disesuaikan dengan durasi
+            </p>
           </div>
           @endif
 
@@ -87,53 +90,29 @@
           @csrf
           <input type="hidden" name="motor_id" value="{{ $motor->id }}">
 
-          <!-- Duration Type -->
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Tipe Durasi</label>
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              @if($motor->tarifRental && $motor->tarifRental->tarif_harian)
-              <label class="relative">
-                <input type="radio" name="tipe_durasi" value="harian" class="sr-only peer" required
-                  data-price="{{ $motor->tarifRental->tarif_harian }}">
-                <div class="border-2 border-gray-200 rounded-lg p-4 cursor-pointer peer-checked:border-blue-500 peer-checked:bg-blue-50 hover:border-gray-300">
-                  <div class="text-center">
-                    <div class="text-sm font-medium text-gray-900">Harian</div>
-                    <div class="text-xs text-gray-500 mt-1">Rp {{ number_format($motor->tarifRental->tarif_harian, 0, ',', '.') }}/hari</div>
-                  </div>
-                </div>
-              </label>
-              @endif
+          <!-- Hidden input for automatic duration type calculation -->
+          <input type="hidden" name="tipe_durasi" id="tipe_durasi" value="harian">
 
-              @if($motor->tarifRental && $motor->tarifRental->tarif_mingguan)
-              <label class="relative">
-                <input type="radio" name="tipe_durasi" value="mingguan" class="sr-only peer"
-                  data-price="{{ $motor->tarifRental->tarif_mingguan }}">
-                <div class="border-2 border-gray-200 rounded-lg p-4 cursor-pointer peer-checked:border-blue-500 peer-checked:bg-blue-50 hover:border-gray-300">
-                  <div class="text-center">
-                    <div class="text-sm font-medium text-gray-900">Mingguan</div>
-                    <div class="text-xs text-gray-500 mt-1">Rp {{ number_format($motor->tarifRental->tarif_mingguan, 0, ',', '.') }}/minggu</div>
-                  </div>
-                </div>
-              </label>
+          <!-- Tariff Information Display -->
+          @if($motor->tarifRental)
+          <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <h4 class="text-sm font-medium text-blue-900 mb-2">Informasi Tarif</h4>
+            <div class="space-y-1 text-sm text-blue-700">
+              @if($motor->tarifRental->tarif_harian)
+              <p>• <span class="font-semibold">Rp {{ number_format($motor->tarifRental->tarif_harian, 0, ',', '.') }}</span> per hari</p>
               @endif
-
-              @if($motor->tarifRental && $motor->tarifRental->tarif_bulanan)
-              <label class="relative">
-                <input type="radio" name="tipe_durasi" value="bulanan" class="sr-only peer"
-                  data-price="{{ $motor->tarifRental->tarif_bulanan }}">
-                <div class="border-2 border-gray-200 rounded-lg p-4 cursor-pointer peer-checked:border-blue-500 peer-checked:bg-blue-50 hover:border-gray-300">
-                  <div class="text-center">
-                    <div class="text-sm font-medium text-gray-900">Bulanan</div>
-                    <div class="text-xs text-gray-500 mt-1">Rp {{ number_format($motor->tarifRental->tarif_bulanan, 0, ',', '.') }}/bulan</div>
-                  </div>
-                </div>
-              </label>
+              @if($motor->tarifRental->tarif_mingguan)
+              <p>• <span class="font-semibold">Rp {{ number_format($motor->tarifRental->tarif_mingguan, 0, ',', '.') }}</span> per minggu (7 hari)</p>
+              @endif
+              @if($motor->tarifRental->tarif_bulanan)
+              <p>• <span class="font-semibold">Rp {{ number_format($motor->tarifRental->tarif_bulanan, 0, ',', '.') }}</span> per bulan (30 hari)</p>
               @endif
             </div>
-            @error('tipe_durasi')
-            <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-            @enderror
+            <p class="text-xs text-blue-600 mt-2">
+              Sistem akan otomatis menentukan tarif terbaik berdasarkan durasi penyewaan Anda
+            </p>
           </div>
+          @endif
 
           <!-- Date Range -->
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -216,10 +195,24 @@
   </div>
 </div>
 
+<!-- Motor Rate Data -->
+@php
+$tarifHarian = $motor->tarifRental ? $motor->tarifRental->tarif_harian : 0;
+$tarifMingguan = $motor->tarifRental ? $motor->tarifRental->tarif_mingguan : 0;
+$tarifBulanan = $motor->tarifRental ? $motor->tarifRental->tarif_bulanan : 0;
+@endphp
+
+<script>
+  window.motorRates = {
+    daily: {{ $tarifHarian ?? 0 }},
+    weekly: {{ $tarifMingguan ?? 0 }},
+    monthly: {{ $tarifBulanan ?? 0 }}
+  };
+</script>
+
 <!-- JavaScript for Price Calculation -->
 <script>
   document.addEventListener('DOMContentLoaded', function() {
-    const durationRadios = document.querySelectorAll('input[name="tipe_durasi"]');
     const startDateInput = document.getElementById('tanggal_mulai');
     const endDateInput = document.getElementById('tanggal_selesai');
     const durationDisplay = document.getElementById('duration-display');
@@ -230,26 +223,34 @@
     const loadingText = document.getElementById('loading-text');
     const form = document.querySelector('form');
 
+    // Tariff rates from motor 
+    const rates = window.motorRates || {
+      daily: 25000,
+      weekly: 150000,
+      monthly: 625000
+    };
+
+    const tipeDurasiInput = document.getElementById('tipe_durasi');
+
     function validateForm() {
-      const selectedDuration = document.querySelector('input[name="tipe_durasi"]:checked');
       const startDate = startDateInput.value;
       const endDate = endDateInput.value;
 
-      const isValid = selectedDuration && startDate && endDate && new Date(endDate) > new Date(startDate);
+      const isValid = startDate && endDate && new Date(endDate) > new Date(startDate);
       submitBtn.disabled = !isValid;
 
       return isValid;
     }
 
     function calculatePrice() {
-      const selectedDuration = document.querySelector('input[name="tipe_durasi"]:checked');
       const startDate = new Date(startDateInput.value);
       const endDate = new Date(endDateInput.value);
 
-      if (!selectedDuration || !startDateInput.value || !endDateInput.value) {
+      if (!startDateInput.value || !endDateInput.value) {
         durationDisplay.textContent = '-';
         rateDisplay.textContent = '-';
         totalPriceDisplay.textContent = 'Rp 0';
+        tipeDurasiInput.value = 'harian';
         validateForm();
         return;
       }
@@ -258,40 +259,102 @@
         durationDisplay.textContent = '-';
         rateDisplay.textContent = '-';
         totalPriceDisplay.textContent = 'Rp 0';
+        tipeDurasiInput.value = 'harian';
         validateForm();
         return;
       }
 
+      // Calculate number of days
       const diffTime = Math.abs(endDate - startDate);
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-      const pricePerUnit = parseFloat(selectedDuration.dataset.price);
-      const durationType = selectedDuration.value;
+      let totalPrice, rateText, durationType, durationText;
 
-      let duration, totalPrice;
+      // Calculate optimal pricing combination
+      if (diffDays >= 30 && rates.monthly > 0) {
+        // Calculate months + remaining days
+        const months = Math.floor(diffDays / 30);
+        const remainingDays = diffDays % 30;
 
-      switch (durationType) {
-        case 'harian':
-          duration = diffDays;
-          totalPrice = duration * pricePerUnit;
-          durationDisplay.textContent = `${duration} hari`;
-          rateDisplay.textContent = `Rp ${pricePerUnit.toLocaleString('id-ID')}`;
-          break;
-        case 'mingguan':
-          duration = Math.ceil(diffDays / 7);
-          totalPrice = duration * pricePerUnit;
-          durationDisplay.textContent = `${duration} minggu`;
-          rateDisplay.textContent = `Rp ${pricePerUnit.toLocaleString('id-ID')}`;
-          break;
-        case 'bulanan':
-          duration = Math.ceil(diffDays / 30);
-          totalPrice = duration * pricePerUnit;
-          durationDisplay.textContent = `${duration} bulan`;
-          rateDisplay.textContent = `Rp ${pricePerUnit.toLocaleString('id-ID')}`;
-          break;
+        // Calculate weekly option for remaining days if beneficial
+        if (remainingDays >= 7 && rates.weekly > 0) {
+          const weeks = Math.floor(remainingDays / 7);
+          const finalRemainingDays = remainingDays % 7;
+
+          const monthlyPrice = months * rates.monthly;
+          const weeklyPrice = weeks * rates.weekly;
+          const dailyPrice = finalRemainingDays * rates.daily;
+
+          totalPrice = monthlyPrice + weeklyPrice + dailyPrice;
+
+          if (weeks > 0 && finalRemainingDays > 0) {
+            durationText = `${diffDays} hari (${months} bulan + ${weeks} minggu + ${finalRemainingDays} hari)`;
+            rateText = `Bulanan + Mingguan + Harian`;
+          } else if (weeks > 0) {
+            durationText = `${diffDays} hari (${months} bulan + ${weeks} minggu)`;
+            rateText = `Bulanan + Mingguan`;
+          } else {
+            durationText = `${diffDays} hari (${months} bulan + ${finalRemainingDays} hari)`;
+            rateText = `Bulanan + Harian`;
+          }
+        } else {
+          // Just monthly + daily
+          const monthlyPrice = months * rates.monthly;
+          const dailyPrice = remainingDays * rates.daily;
+          totalPrice = monthlyPrice + dailyPrice;
+
+          if (remainingDays > 0) {
+            durationText = `${diffDays} hari (${months} bulan + ${remainingDays} hari)`;
+            rateText = `Bulanan + Harian`;
+          } else {
+            durationText = `${diffDays} hari (${months} bulan)`;
+            rateText = `Rp ${rates.monthly.toLocaleString('id-ID')}/bulan`;
+          }
+        }
+        durationType = 'bulanan';
+      } else if (diffDays >= 7 && rates.weekly > 0) {
+        // Calculate weeks + remaining days
+        const weeks = Math.floor(diffDays / 7);
+        const remainingDays = diffDays % 7;
+
+        const weeklyPrice = weeks * rates.weekly;
+        const dailyPrice = remainingDays * rates.daily;
+        const totalPriceWithWeekly = weeklyPrice + dailyPrice;
+
+        // Compare with pure daily pricing
+        const pureDaily = diffDays * rates.daily;
+
+        if (totalPriceWithWeekly <= pureDaily) {
+          totalPrice = totalPriceWithWeekly;
+          if (remainingDays > 0) {
+            durationText = `${diffDays} hari (${weeks} minggu + ${remainingDays} hari)`;
+            rateText = `Mingguan + Harian`;
+          } else {
+            durationText = `${diffDays} hari (${weeks} minggu)`;
+            rateText = `Rp ${rates.weekly.toLocaleString('id-ID')}/minggu`;
+          }
+          durationType = 'mingguan';
+        } else {
+          // Pure daily is better
+          totalPrice = pureDaily;
+          durationText = `${diffDays} hari`;
+          rateText = `Rp ${rates.daily.toLocaleString('id-ID')}/hari`;
+          durationType = 'harian';
+        }
+      } else {
+        // Daily pricing only
+        totalPrice = diffDays * rates.daily;
+        durationText = `${diffDays} hari`;
+        rateText = `Rp ${rates.daily.toLocaleString('id-ID')}/hari`;
+        durationType = 'harian';
       }
 
+      // Update display
+      durationDisplay.textContent = durationText;
+      rateDisplay.textContent = rateText;
       totalPriceDisplay.textContent = `Rp ${totalPrice.toLocaleString('id-ID')}`;
+      tipeDurasiInput.value = durationType;
+
       validateForm();
     }
 
@@ -310,10 +373,6 @@
     });
 
     // Add event listeners
-    durationRadios.forEach(radio => {
-      radio.addEventListener('change', calculatePrice);
-    });
-
     endDateInput.addEventListener('change', calculatePrice);
 
     // Form submission handling

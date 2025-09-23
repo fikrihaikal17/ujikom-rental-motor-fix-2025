@@ -6,14 +6,16 @@ use App\Http\Controllers\Controller;
 use App\Models\Penyewaan;
 use App\Models\Motor;
 use App\Models\User;
+use App\Enums\MotorStatus;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class PenyewaanController extends Controller
 {
   public function index(Request $request)
   {
-    $query = Penyewaan::with(['motor', 'user', 'transaksi']);
+    $query = Penyewaan::with(['motor', 'penyewa', 'transaksi']);
 
     // Filter by status
     if ($request->filled('status')) {
@@ -34,9 +36,9 @@ class PenyewaanController extends Controller
       $query->where(function ($q) use ($search) {
         $q->whereHas('motor', function ($sq) use ($search) {
           $sq->where('nama_motor', 'like', "%{$search}%")
-            ->orWhere('nomor_polisi', 'like', "%{$search}%");
+            ->orWhere('no_plat', 'like', "%{$search}%");
         })
-          ->orWhereHas('user', function ($sq) use ($search) {
+          ->orWhereHas('penyewa', function ($sq) use ($search) {
             $sq->where('name', 'like', "%{$search}%")
               ->orWhere('email', 'like', "%{$search}%");
           });
@@ -87,7 +89,7 @@ class PenyewaanController extends Controller
 
   public function show(Penyewaan $penyewaan)
   {
-    $penyewaan->load(['motor', 'user', 'transaksi', 'payments']);
+    $penyewaan->load(['motor', 'penyewa', 'transaksi', 'payments']);
 
     return view('admin.penyewaan.show', compact('penyewaan'));
   }
@@ -135,56 +137,117 @@ class PenyewaanController extends Controller
       'status' => 'required|in:pending,confirmed,active,completed,cancelled'
     ]);
 
+    // Get the old status before updating
+    $oldStatus = $penyewaan->status;
+
+    // Update booking status
     $penyewaan->update(['status' => $request->status]);
+
+    // Update motor status based on booking status
+    $motor = $penyewaan->motor;
+    if ($motor) {
+      switch ($request->status) {
+        case 'confirmed':
+          // When booking is confirmed, motor should still be available until active
+          if ($motor->status !== \App\Enums\MotorStatus::RENTED) {
+            $motor->update(['status' => \App\Enums\MotorStatus::AVAILABLE]);
+          }
+          break;
+
+        case 'active':
+          // When booking becomes active, motor should be marked as rented
+          $motor->update(['status' => \App\Enums\MotorStatus::RENTED]);
+          break;
+
+        case 'completed':
+        case 'cancelled':
+          // When booking is completed or cancelled, motor becomes available again
+          // Only if this motor doesn't have other active bookings
+          $hasOtherActiveBookings = $motor->penyewaans()
+            ->where('id', '!=', $penyewaan->id)
+            ->whereIn('status', ['confirmed', 'active'])
+            ->exists();
+
+          if (!$hasOtherActiveBookings) {
+            $motor->update(['status' => \App\Enums\MotorStatus::AVAILABLE]);
+          }
+          break;
+      }
+    }
 
     return back()->with('success', 'Status penyewaan berhasil diupdate');
   }
 
-  public function exportCsv()
+  public function exportPdf(Request $request)
   {
-    $penyewaans = Penyewaan::with(['motor', 'user'])->get();
+    // Build query with same filtering as index
+    $query = Penyewaan::with(['motor', 'penyewa', 'transaksi']);
 
-    $filename = 'penyewaan_' . date('Y-m-d') . '.csv';
+    // Apply status filter if provided
+    if ($request->filled('status')) {
+      $query->where('status', $request->status);
+    }
 
-    $headers = [
-      'Content-Type' => 'text/csv',
-      'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+    // Apply date range filter
+    if ($request->filled('start_date')) {
+      $query->whereDate('tanggal_mulai', '>=', $request->start_date);
+    }
+    if ($request->filled('end_date')) {
+      $query->whereDate('tanggal_selesai', '<=', $request->end_date);
+    }
+
+    // Apply search filter
+    if ($request->filled('search')) {
+      $search = $request->search;
+      $query->where(function ($q) use ($search) {
+        $q->whereHas('motor', function ($sq) use ($search) {
+          $sq->where('nama_motor', 'like', "%{$search}%")
+            ->orWhere('no_plat', 'like', "%{$search}%");
+        })
+          ->orWhereHas('penyewa', function ($sq) use ($search) {
+            $sq->where('name', 'like', "%{$search}%")
+              ->orWhere('email', 'like', "%{$search}%");
+          });
+      });
+    }
+
+    // Get all matching penyewaans (no pagination for export)
+    $penyewaans = $query->orderBy('created_at', 'desc')->get();
+
+    // Generate statistics for the current filter
+    $stats = [
+      'total' => $penyewaans->count(),
+      'pending' => $penyewaans->where('status', 'pending')->count(),
+      'confirmed' => $penyewaans->where('status', 'confirmed')->count(),
+      'active' => $penyewaans->where('status', 'active')->count(),
+      'completed' => $penyewaans->where('status', 'completed')->count(),
+      'cancelled' => $penyewaans->where('status', 'cancelled')->count(),
+      'total_revenue' => $penyewaans->whereIn('status', ['completed'])->sum('total_harga'),
     ];
 
-    $callback = function () use ($penyewaans) {
-      $file = fopen('php://output', 'w');
+    // Get filter information for display
+    $filterInfo = [
+      'status' => $request->status ?? 'all',
+      'start_date' => $request->start_date ?? '',
+      'end_date' => $request->end_date ?? '',
+      'search' => $request->search ?? '',
+      'date' => now()->format('d/m/Y H:i:s')
+    ];
 
-      // Header
-      fputcsv($file, [
-        'ID',
-        'Penyewa',
-        'Motor',
-        'Tanggal Mulai',
-        'Tanggal Selesai',
-        'Durasi (Hari)',
-        'Total Harga',
-        'Status',
-        'Dibuat'
-      ]);
+    // Generate PDF
+    $pdf = Pdf::loadView('admin.penyewaan.export-pdf', compact('penyewaans', 'stats', 'filterInfo'))
+      ->setPaper('a4', 'landscape');
 
-      // Data
-      foreach ($penyewaans as $penyewaan) {
-        fputcsv($file, [
-          $penyewaan->id,
-          $penyewaan->user->name,
-          $penyewaan->motor->nama_motor,
-          $penyewaan->tanggal_mulai,
-          $penyewaan->tanggal_selesai,
-          $penyewaan->durasi_sewa,
-          $penyewaan->total_harga,
-          $penyewaan->status,
-          $penyewaan->created_at->format('Y-m-d H:i:s')
-        ]);
-      }
+    // Generate filename based on filter
+    $filename = 'data-penyewaan';
+    if ($request->filled('status')) {
+      $filename .= '-' . $request->status;
+    }
+    if ($request->filled('start_date') || $request->filled('end_date')) {
+      $filename .= '-periode';
+    }
+    $filename .= '-' . now()->format('Y-m-d') . '.pdf';
 
-      fclose($file);
-    };
-
-    return response()->stream($callback, 200, $headers);
+    return $pdf->download($filename);
   }
 }

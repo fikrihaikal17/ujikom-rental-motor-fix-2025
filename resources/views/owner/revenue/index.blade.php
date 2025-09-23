@@ -199,7 +199,7 @@
                 {{ $transaction->penyewaan->motor->nama }}
               </p>
               <p class="text-sm text-gray-500">
-                Penyewa: {{ $transaction->penyewaan->renter->name ?? 'N/A' }}
+                Penyewa: {{ $transaction->penyewaan->penyewa->nama ?? 'N/A' }}
               </p>
               <p class="text-xs text-gray-400">
                 {{ $transaction->created_at->format('d M Y, H:i') }}

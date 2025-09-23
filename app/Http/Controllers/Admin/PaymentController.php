@@ -5,66 +5,72 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Payment;
 use App\Models\Penyewaan;
+use App\Enums\BookingStatus;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class PaymentController extends Controller
 {
   public function index(Request $request)
   {
-    $query = Payment::with(['penyewaan.motor', 'penyewaan.user']);
+    // Get all bookings as payment data (since this system uses COD/Cash payments)
+    $query = Penyewaan::with(['motor', 'penyewa']);
 
     // Filter by status
     if ($request->filled('status')) {
-      $query->where('status', $request->status);
+      if ($request->status == 'completed') {
+        $query->where('status', BookingStatus::COMPLETED);
+      } elseif ($request->status == 'pending') {
+        // Show pending, confirmed, and active bookings as "pending" payments
+        $query->whereIn('status', [BookingStatus::PENDING, BookingStatus::CONFIRMED, BookingStatus::ACTIVE]);
+      } elseif ($request->status == 'failed') {
+        $query->where('status', BookingStatus::CANCELLED);
+      }
     }
 
-    // Filter by payment method
-    if ($request->filled('payment_method')) {
-      $query->where('payment_method', $request->payment_method);
+    // Filter by payment method (all are cash/COD)
+    if ($request->filled('method') && $request->method != 'cash') {
+      // If filtering for non-cash methods, return empty results
+      $query->whereRaw('1 = 0');
     }
 
     // Filter by date range
-    if ($request->filled('start_date')) {
-      $query->whereDate('created_at', '>=', $request->start_date);
-    }
-    if ($request->filled('end_date')) {
-      $query->whereDate('created_at', '<=', $request->end_date);
-    }
-
-    // Search by transaction code or user name
-    if ($request->filled('search')) {
-      $search = $request->search;
-      $query->where(function ($q) use ($search) {
-        $q->where('transaction_code', 'like', "%{$search}%")
-          ->orWhereHas('penyewaan.user', function ($sq) use ($search) {
-            $sq->where('name', 'like', "%{$search}%");
-          });
-      });
+    if ($request->filled('date_from')) {
+      $query->whereDate('created_at', '>=', $request->date_from);
     }
 
     $payments = $query->orderBy('created_at', 'desc')->paginate(10);
 
+    // Transform penyewaan data to payment-like structure
+    $payments->getCollection()->transform(function ($penyewaan) {
+      $penyewaan->transaction_id = 'TXN-' . str_pad($penyewaan->id, 6, '0', STR_PAD_LEFT);
+      $penyewaan->booking_code = 'BK-' . str_pad($penyewaan->id, 6, '0', STR_PAD_LEFT);
+      $penyewaan->amount = $penyewaan->harga;
+      $penyewaan->payment_method = 'cash';
+
+      // Map booking status to payment status
+      $penyewaan->payment_status = match ($penyewaan->status) {
+        BookingStatus::COMPLETED => 'completed',
+        BookingStatus::CANCELLED => 'failed',
+        BookingStatus::PENDING, BookingStatus::CONFIRMED, BookingStatus::ACTIVE => 'pending',
+        default => 'pending'
+      };
+
+      return $penyewaan;
+    });
+
     // Statistics
-    $totalPayments = Payment::count();
-    $pendingPayments = Payment::where('status', 'pending')->count();
-    $verifiedPayments = Payment::where('status', 'verified')->count();
-    $totalAmount = Payment::where('status', 'verified')->sum('amount');
+    $stats = [
+      'total' => Penyewaan::count(),
+      'success' => Penyewaan::where('status', BookingStatus::COMPLETED)->count(),
+      'pending' => Penyewaan::whereIn('status', [BookingStatus::PENDING, BookingStatus::CONFIRMED, BookingStatus::ACTIVE])->count(),
+      'failed' => Penyewaan::where('status', BookingStatus::CANCELLED)->count(),
+      'total_amount' => Penyewaan::where('status', BookingStatus::COMPLETED)->sum('harga'),
+    ];
 
-    // Payment method breakdown
-    $paymentMethods = Payment::select('payment_method', DB::raw('count(*) as count'))
-      ->groupBy('payment_method')
-      ->pluck('count', 'payment_method');
-
-    return view('admin.payments.index', compact(
-      'payments',
-      'totalPayments',
-      'pendingPayments',
-      'verifiedPayments',
-      'totalAmount',
-      'paymentMethods'
-    ));
+    return view('admin.payments.index', compact('payments', 'stats'));
   }
 
   public function create()
@@ -208,30 +214,52 @@ class PaymentController extends Controller
     $startDate = $request->start_date ?? now()->startOfMonth()->format('Y-m-d');
     $endDate = $request->end_date ?? now()->endOfMonth()->format('Y-m-d');
 
-    // Payment statistics
-    $totalPayments = Payment::whereBetween('created_at', [$startDate, $endDate])->count();
-    $totalAmount = Payment::where('status', 'verified')
-      ->whereBetween('created_at', [$startDate, $endDate])
-      ->sum('amount');
-    $pendingPayments = Payment::where('status', 'pending')
+    // Payment statistics from penyewaan data
+    $totalPayments = Penyewaan::whereIn('status', [BookingStatus::COMPLETED, BookingStatus::CANCELLED])
       ->whereBetween('created_at', [$startDate, $endDate])
       ->count();
-    $verifiedPayments = Payment::where('status', 'verified')
+    $totalAmount = Penyewaan::where('status', BookingStatus::COMPLETED)
+      ->whereBetween('created_at', [$startDate, $endDate])
+      ->sum('harga');
+    $pendingPayments = Penyewaan::where('status', BookingStatus::CANCELLED)
+      ->whereBetween('created_at', [$startDate, $endDate])
+      ->count();
+    $verifiedPayments = Penyewaan::where('status', BookingStatus::COMPLETED)
       ->whereBetween('created_at', [$startDate, $endDate])
       ->count();
 
-    // Payment method breakdown
-    $paymentMethods = Payment::select('payment_method', DB::raw('count(*) as count'), DB::raw('sum(amount) as total'))
+    // Get detailed payment data
+    $payments = Penyewaan::with(['motor', 'penyewa'])
+      ->whereIn('status', [BookingStatus::COMPLETED, BookingStatus::CANCELLED])
       ->whereBetween('created_at', [$startDate, $endDate])
-      ->groupBy('payment_method')
+      ->orderBy('created_at', 'desc')
       ->get();
 
+    // Transform data
+    $payments->transform(function ($penyewaan) {
+      $penyewaan->transaction_id = 'TXN-' . str_pad($penyewaan->id, 6, '0', STR_PAD_LEFT);
+      $penyewaan->amount = $penyewaan->harga;
+      $penyewaan->payment_method = 'cash';
+      $penyewaan->payment_status = $penyewaan->status == BookingStatus::COMPLETED ? 'completed' : 'failed';
+      return $penyewaan;
+    });
+
+    // Payment method breakdown (all COD/Cash)
+    $paymentMethods = collect([
+      (object)[
+        'payment_method' => 'cash',
+        'count' => $totalPayments,
+        'total' => $totalAmount
+      ]
+    ]);
+
     // Daily payment trends
-    $dailyTrends = Payment::select(
+    $dailyTrends = Penyewaan::select(
       DB::raw('DATE(created_at) as date'),
       DB::raw('count(*) as count'),
-      DB::raw('sum(amount) as total')
+      DB::raw('sum(harga) as total')
     )
+      ->whereIn('status', [BookingStatus::COMPLETED, BookingStatus::CANCELLED])
       ->whereBetween('created_at', [$startDate, $endDate])
       ->groupBy('date')
       ->orderBy('date')
@@ -244,6 +272,7 @@ class PaymentController extends Controller
       'verifiedPayments',
       'paymentMethods',
       'dailyTrends',
+      'payments',
       'startDate',
       'endDate'
     ));
@@ -251,9 +280,83 @@ class PaymentController extends Controller
 
   public function exportPdf(Request $request)
   {
-    // This would require a PDF library like DomPDF or TCPDF
-    // For now, return a simple response
-    return response()->json(['message' => 'PDF export feature coming soon']);
+    // Date filters
+    $startDate = $request->start_date ?? now()->startOfMonth()->format('Y-m-d');
+    $endDate = $request->end_date ?? now()->endOfMonth()->format('Y-m-d');
+
+    // Payment statistics from penyewaan data
+    $totalPayments = Penyewaan::whereIn('status', [BookingStatus::COMPLETED, BookingStatus::CANCELLED])
+      ->whereBetween('created_at', [$startDate, $endDate])
+      ->count();
+    $totalAmount = Penyewaan::where('status', BookingStatus::COMPLETED)
+      ->whereBetween('created_at', [$startDate, $endDate])
+      ->sum('harga');
+    $pendingPayments = Penyewaan::where('status', BookingStatus::CANCELLED)
+      ->whereBetween('created_at', [$startDate, $endDate])
+      ->count();
+    $verifiedPayments = Penyewaan::where('status', BookingStatus::COMPLETED)
+      ->whereBetween('created_at', [$startDate, $endDate])
+      ->count();
+
+    // Get detailed payment data
+    $payments = Penyewaan::with(['motor', 'penyewa'])
+      ->whereIn('status', [BookingStatus::COMPLETED, BookingStatus::CANCELLED])
+      ->whereBetween('created_at', [$startDate, $endDate])
+      ->orderBy('created_at', 'desc')
+      ->get();
+
+    // Transform data
+    $payments->transform(function ($penyewaan) {
+      $penyewaan->transaction_id = 'TXN-' . str_pad($penyewaan->id, 6, '0', STR_PAD_LEFT);
+      $penyewaan->amount = $penyewaan->harga;
+      $penyewaan->payment_method = 'cash';
+      $penyewaan->payment_status = $penyewaan->status == BookingStatus::COMPLETED ? 'completed' : 'failed';
+      return $penyewaan;
+    });
+
+    // Payment method breakdown (all COD/Cash)
+    $paymentMethods = collect([
+      (object)[
+        'payment_method' => 'cash',
+        'count' => $totalPayments,
+        'total' => $totalAmount
+      ]
+    ]);
+
+    // Daily payment trends
+    $dailyTrends = Penyewaan::select(
+      DB::raw('DATE(created_at) as date'),
+      DB::raw('count(*) as count'),
+      DB::raw('sum(harga) as total')
+    )
+      ->whereIn('status', [BookingStatus::COMPLETED, BookingStatus::CANCELLED])
+      ->whereBetween('created_at', [$startDate, $endDate])
+      ->groupBy('date')
+      ->orderBy('date')
+      ->get();
+
+    // Generate PDF
+    $pdf = Pdf::loadView('admin.payments.report-pdf', compact(
+      'totalPayments',
+      'totalAmount',
+      'pendingPayments',
+      'verifiedPayments',
+      'paymentMethods',
+      'dailyTrends',
+      'payments',
+      'startDate',
+      'endDate'
+    ));
+
+    $pdf->setPaper('a4', 'landscape');
+    $pdf->setOptions([
+      'isHtml5ParserEnabled' => true,
+      'isPhpEnabled' => true,
+      'defaultFont' => 'Arial'
+    ]);
+
+    $filename = 'laporan-pembayaran-' . date('Y-m-d-His') . '.pdf';
+    return $pdf->download($filename);
   }
 
   public function exportExcel(Request $request)

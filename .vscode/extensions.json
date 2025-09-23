@@ -1,0 +1,9 @@
+{
+    "recommendations": [
+        "onecentlin.laravel-blade",
+        "amiralizadeh9480.laravel-extra-intellisense",
+        "ryannaddy.laravel-artisan",
+        "austenc.laravel-blade-spacer",
+        "bradlc.vscode-tailwindcss"
+    ]
+}

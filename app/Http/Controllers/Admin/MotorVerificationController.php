@@ -6,13 +6,50 @@ use App\Http\Controllers\Controller;
 use App\Models\Motor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class MotorVerificationController extends Controller
 {
-  public function index()
+  public function index(Request $request)
   {
-    // Get motors that need verification (pending status)
+    // Build base query
+    $query = Motor::with(['owner', 'tarifRental']);
+
+    // Apply status filter if provided
+    if ($request->filled('status')) {
+      if ($request->status === 'verified') {
+        $query->where('status', \App\Enums\MotorStatus::VERIFIED);
+      } elseif ($request->status === 'pending') {
+        $query->where('status', \App\Enums\MotorStatus::PENDING)
+          ->whereNull('admin_notes');
+      } elseif ($request->status === 'rejected') {
+        $query->where('status', \App\Enums\MotorStatus::PENDING)
+          ->whereNotNull('admin_notes');
+      }
+    }
+
+    // Apply search filter
+    if ($request->filled('search')) {
+      $search = $request->search;
+      $query->where(function ($q) use ($search) {
+        $q->where('merk', 'like', "%{$search}%")
+          ->orWhere('model', 'like', "%{$search}%")
+          ->orWhere('nama_motor', 'like', "%{$search}%")
+          ->orWhere('plat_nomor', 'like', "%{$search}%")
+          ->orWhere('no_plat', 'like', "%{$search}%")
+          ->orWhereHas('owner', function ($q) use ($search) {
+            $q->where('nama', 'like', "%{$search}%")
+              ->orWhere('name', 'like', "%{$search}%");
+          });
+      });
+    }
+
+    // Get paginated results
+    $motors = $query->latest()->paginate(15)->withQueryString();
+
+    // Get motors that need verification (pending status without admin notes)
     $pendingMotors = Motor::where('status', \App\Enums\MotorStatus::PENDING)
+      ->whereNull('admin_notes')
       ->with(['owner', 'tarifRental'])
       ->latest()
       ->paginate(10, ['*'], 'pending');
@@ -32,17 +69,17 @@ class MotorVerificationController extends Controller
     // Statistics
     $stats = [
       'total' => Motor::count(),
-      'pending' => Motor::where('status', \App\Enums\MotorStatus::PENDING)->count(),
+      'pending' => Motor::where('status', \App\Enums\MotorStatus::PENDING)->whereNull('admin_notes')->count(),
       'verified' => Motor::where('status', \App\Enums\MotorStatus::VERIFIED)->count(),
       'rejected' => Motor::where('status', \App\Enums\MotorStatus::PENDING)->whereNotNull('admin_notes')->count(),
     ];
 
-    return view('admin.motors.index', compact('pendingMotors', 'verifiedMotors', 'rejectedMotors', 'stats'));
+    return view('admin.motors.index', compact('motors', 'pendingMotors', 'verifiedMotors', 'rejectedMotors', 'stats'));
   }
 
   public function show(Motor $motor)
   {
-    $motor->load(['owner', 'tarifRental', 'penyewaans.renter']);
+    $motor->load(['owner', 'tarifRental', 'penyewaans.renter', 'verifiedBy']);
     return view('admin.motors.show', compact('motor'));
   }
 
@@ -52,15 +89,25 @@ class MotorVerificationController extends Controller
       'notes' => 'nullable|string|max:500',
       'tarif_harian' => 'required|numeric|min:0',
       'tarif_mingguan' => 'required|numeric|min:0',
-      'tarif_bulanan' => 'required|numeric|min:0'
+      'tarif_bulanan' => 'required|numeric|min:0',
+      'owner_percentage' => 'required|numeric|min:50|max:90',
+      'admin_percentage' => 'required|numeric|min:10|max:50',
     ]);
 
-    // Update motor status
+    // Validate that percentages add up to 100
+    if ($request->owner_percentage + $request->admin_percentage != 100) {
+      return back()->withErrors(['owner_percentage' => 'Persentase pemilik dan admin harus berjumlah 100%']);
+    }
+
+    // Update motor status and revenue sharing
     $motor->update([
       'status' => \App\Enums\MotorStatus::VERIFIED,
       'admin_notes' => $request->notes,
       'verified_at' => now(),
-      'verified_by' => Auth::id()
+      'verified_by' => Auth::id(),
+      'owner_percentage' => $request->owner_percentage,
+      'admin_percentage' => $request->admin_percentage,
+      'revenue_sharing_approved' => true,
     ]);
 
     // Create or update tarif rental
@@ -75,7 +122,7 @@ class MotorVerificationController extends Controller
     );
 
     return redirect()->route('admin.motors.index')
-      ->with('success', "Motor {$motor->merk} {$motor->model} berhasil diverifikasi dengan harga sewa yang telah ditetapkan.");
+      ->with('success', "Motor {$motor->merk} {$motor->model} berhasil diverifikasi dengan pembagian hasil {$request->owner_percentage}% untuk pemilik dan {$request->admin_percentage}% untuk platform.");
   }
 
   public function reject(Request $request, Motor $motor)
@@ -95,42 +142,69 @@ class MotorVerificationController extends Controller
       ->with('success', "Motor {$motor->merk} {$motor->model} telah ditolak.");
   }
 
-  public function export()
+  public function exportPdf(Request $request)
   {
-    $filename = 'motors_export_' . now()->format('Y-m-d_H-i-s') . '.csv';
+    // Build query with same filtering as index
+    $query = Motor::with(['owner', 'tarifRental']);
 
-    $headers = [
-      'Content-Type' => 'text/csv',
-      'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+    // Apply status filter if provided
+    if ($request->filled('status')) {
+      if ($request->status === 'verified') {
+        $query->where('status', \App\Enums\MotorStatus::VERIFIED);
+      } elseif ($request->status === 'pending') {
+        $query->where('status', \App\Enums\MotorStatus::PENDING)
+          ->whereNull('admin_notes');
+      } elseif ($request->status === 'rejected') {
+        $query->where('status', \App\Enums\MotorStatus::PENDING)
+          ->whereNotNull('admin_notes');
+      }
+    }
+
+    // Apply search filter
+    if ($request->filled('search')) {
+      $search = $request->search;
+      $query->where(function ($q) use ($search) {
+        $q->where('merk', 'like', "%{$search}%")
+          ->orWhere('model', 'like', "%{$search}%")
+          ->orWhere('nama_motor', 'like', "%{$search}%")
+          ->orWhere('plat_nomor', 'like', "%{$search}%")
+          ->orWhere('no_plat', 'like', "%{$search}%")
+          ->orWhereHas('owner', function ($q) use ($search) {
+            $q->where('nama', 'like', "%{$search}%")
+              ->orWhere('name', 'like', "%{$search}%");
+          });
+      });
+    }
+
+    // Get all matching motors (no pagination for export)
+    $motors = $query->latest()->get();
+
+    // Generate statistics for the current filter
+    $stats = [
+      'total' => $motors->count(),
+      'pending' => $motors->where('status', \App\Enums\MotorStatus::PENDING->value)->where('admin_notes', null)->count(),
+      'verified' => $motors->where('status', \App\Enums\MotorStatus::VERIFIED->value)->count(),
+      'rejected' => $motors->where('status', \App\Enums\MotorStatus::PENDING->value)->whereNotNull('admin_notes')->count(),
     ];
 
-    $callback = function () {
-      $file = fopen('php://output', 'w');
+    // Get filter information for display
+    $filterInfo = [
+      'status' => $request->status ?? 'all',
+      'search' => $request->search ?? '',
+      'date' => now()->format('d/m/Y H:i:s')
+    ];
 
-      // Header CSV
-      fputcsv($file, ['ID', 'Merk', 'Model', 'Plat Nomor', 'Pemilik', 'Email Pemilik', 'Status', 'Ketersediaan', 'Tanggal Daftar', 'Tanggal Verifikasi', 'Catatan Admin']);
+    // Generate PDF
+    $pdf = Pdf::loadView('admin.motors.export-pdf', compact('motors', 'stats', 'filterInfo'))
+      ->setPaper('a4', 'landscape');
 
-      // Data
-      $motors = Motor::with(['owner'])->get();
-      foreach ($motors as $motor) {
-        fputcsv($file, [
-          $motor->id,
-          $motor->merk,
-          $motor->model,
-          $motor->plat_nomor,
-          $motor->owner->nama ?? '-',
-          $motor->owner->email ?? '-',
-          ucfirst($motor->status),
-          ucfirst($motor->ketersediaan),
-          $motor->created_at->format('Y-m-d H:i:s'),
-          $motor->verified_at ? $motor->verified_at->format('Y-m-d H:i:s') : '-',
-          $motor->admin_notes ?? '-'
-        ]);
-      }
+    // Generate filename based on filter
+    $filename = 'data-motor';
+    if ($request->filled('status')) {
+      $filename .= '-' . $request->status;
+    }
+    $filename .= '-' . now()->format('Y-m-d') . '.pdf';
 
-      fclose($file);
-    };
-
-    return response()->stream($callback, 200, $headers);
+    return $pdf->download($filename);
   }
 }

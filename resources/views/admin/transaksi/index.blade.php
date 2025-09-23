@@ -12,8 +12,8 @@
     </div>
     <div class="flex space-x-3">
       <a href="{{ route('admin.transaksi.export', request()->query()) }}"
-        class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition duration-200">
-        <i class="fas fa-download mr-2"></i>Export CSV
+        class="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition duration-200">
+        <i class="fas fa-file-pdf mr-2"></i>Export PDF
       </a>
     </div>
   </div>
@@ -111,9 +111,10 @@
           class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
           <option value="">Semua Status</option>
           <option value="pending" {{ request('status') === 'pending' ? 'selected' : '' }}>Pending</option>
-          <option value="paid" {{ request('status') === 'paid' ? 'selected' : '' }}>Paid</option>
-          <option value="failed" {{ request('status') === 'failed' ? 'selected' : '' }}>Failed</option>
-          <option value="refunded" {{ request('status') === 'refunded' ? 'selected' : '' }}>Refunded</option>
+          <option value="confirmed" {{ request('status') === 'confirmed' ? 'selected' : '' }}>Confirmed</option>
+          <option value="active" {{ request('status') === 'active' ? 'selected' : '' }}>Active</option>
+          <option value="completed" {{ request('status') === 'completed' ? 'selected' : '' }}>Completed</option>
+          <option value="cancelled" {{ request('status') === 'cancelled' ? 'selected' : '' }}>Cancelled</option>
         </select>
       </div>
       <div>
@@ -160,43 +161,48 @@
           <tr>
             <td class="px-6 py-4 whitespace-nowrap">
               <div class="text-sm font-medium text-gray-900">{{ $transaksi->kode_transaksi }}</div>
-              @if($transaksi->admin_notes)
-              <div class="text-xs text-gray-500">{{ Str::limit($transaksi->admin_notes, 30) }}</div>
+              @if($transaksi->booking_code)
+              <div class="text-xs text-gray-500">{{ $transaksi->booking_code }}</div>
               @endif
             </td>
             <td class="px-6 py-4 whitespace-nowrap">
-              <div class="text-sm text-gray-900">{{ $transaksi->penyewaan->renter->name ?? '-' }}</div>
-              <div class="text-sm text-gray-500">{{ $transaksi->penyewaan->renter->email ?? '-' }}</div>
+              <div class="text-sm text-gray-900">{{ $transaksi->penyewa->name ?? '-' }}</div>
+              <div class="text-sm text-gray-500">{{ $transaksi->penyewa->email ?? '-' }}</div>
             </td>
             <td class="px-6 py-4 whitespace-nowrap">
               <div class="text-sm text-gray-900">
-                {{ $transaksi->penyewaan->motor->merk ?? '-' }} {{ $transaksi->penyewaan->motor->model ?? '-' }}
+                {{ $transaksi->motor->merk ?? '-' }} {{ $transaksi->motor->nama_motor ?? '-' }}
               </div>
-              <div class="text-sm text-gray-500">{{ $transaksi->penyewaan->motor->plat_nomor ?? '-' }}</div>
+              <div class="text-sm text-gray-500">{{ $transaksi->motor->no_plat ?? '-' }}</div>
             </td>
             <td class="px-6 py-4 whitespace-nowrap">
-              <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                                {{ $transaksi->metode_pembayaran === 'transfer' ? 'bg-blue-100 text-blue-800' : 
-                                   ($transaksi->metode_pembayaran === 'cash' ? 'bg-green-100 text-green-800' : 'bg-purple-100 text-purple-800') }}">
-                {{ ucfirst($transaksi->metode_pembayaran) }}
+              <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                COD/Cash
               </span>
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
               Rp {{ number_format($transaksi->jumlah, 0, ',', '.') }}
             </td>
             <td class="px-6 py-4 whitespace-nowrap">
-              <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                                {{ $transaksi->status === 'paid' ? 'bg-green-100 text-green-800' : 
-                                   ($transaksi->status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 
-                                   ($transaksi->status === 'failed' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800')) }}">
-                {{ ucfirst($transaksi->status) }}
+              @php
+              $statusClasses = [
+              'pending' => 'bg-yellow-100 text-yellow-800',
+              'confirmed' => 'bg-blue-100 text-blue-800',
+              'active' => 'bg-purple-100 text-purple-800',
+              'completed' => 'bg-green-100 text-green-800',
+              'cancelled' => 'bg-red-100 text-red-800'
+              ];
+              $statusValue = is_object($transaksi->status) ? $transaksi->status->value : $transaksi->status;
+              @endphp
+              <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{ $statusClasses[$statusValue] ?? 'bg-gray-100 text-gray-800' }}">
+                {{ ucfirst($statusValue) }}
               </span>
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
               {{ $transaksi->created_at->format('d/m/Y H:i') }}
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-              <a href="{{ route('admin.transaksi.show', $transaksi) }}"
+              <a href="{{ route('admin.transaksi.show', $transaksi->id) }}"
                 class="text-blue-600 hover:text-blue-900">
                 <i class="fas fa-eye"></i>
               </a>

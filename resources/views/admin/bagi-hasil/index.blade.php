@@ -10,18 +10,12 @@
       <h1 class="text-2xl font-semibold text-gray-900">History Bagi Hasil</h1>
       <p class="mt-2 text-sm text-gray-700">Lihat riwayat pembagian hasil antara admin dan owner motor.</p>
     </div>
-    <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none space-x-3 flex">
-      <a href="{{ route('admin.bagi-hasil.export') }}" class="inline-flex items-center justify-center rounded-md border border-transparent bg-green-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 sm:w-auto">
+    <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
+      <a href="{{ route('admin.bagi-hasil.export.pdf') }}" class="inline-flex items-center justify-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 sm:w-auto">
         <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
         </svg>
-        Export History
-      </a>
-      <a href="{{ route('admin.bagi-hasil.calculate') }}" class="inline-flex items-center justify-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 sm:w-auto">
-        <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
-        </svg>
-        Hitung Bagi Hasil
+        Export PDF
       </a>
     </div>
   </div>
@@ -232,19 +226,18 @@
           </td>
           <td class="px-6 py-4 whitespace-nowrap">
             @php
+            $status = $bagiHasil->settled_at ? 'settled' : 'pending';
             $statusClasses = [
-            'calculated' => 'bg-blue-100 text-blue-800',
-            'paid' => 'bg-green-100 text-green-800',
+            'settled' => 'bg-green-100 text-green-800',
             'pending' => 'bg-yellow-100 text-yellow-800'
             ];
             $statusLabels = [
-            'calculated' => 'Dihitung',
-            'paid' => 'Dibayar',
-            'pending' => 'Pending'
+            'settled' => 'Diselesaikan',
+            'pending' => 'Menunggu'
             ];
             @endphp
-            <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full {{ $statusClasses[$bagiHasil->status] ?? 'bg-gray-100 text-gray-800' }}">
-              {{ $statusLabels[$bagiHasil->status] ?? ucfirst($bagiHasil->status) }}
+            <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full {{ $statusClasses[$status] }}">
+              {{ $statusLabels[$status] }}
             </span>
           </td>
           <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
@@ -258,11 +251,11 @@
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
                 </svg>
               </a>
-              @if($bagiHasil->status === 'calculated')
-              <form method="POST" action="{{ route('admin.bagi-hasil.mark-paid', $bagiHasil) }}" class="inline">
+              @if($bagiHasil->settled_at === null)
+              <form method="POST" action="{{ route('admin.bagi-hasil.process', $bagiHasil) }}" class="inline">
                 @csrf
                 @method('PATCH')
-                <button type="submit" class="text-green-600 hover:text-green-900" title="Tandai Sudah Dibayar">
+                <button type="submit" class="text-green-600 hover:text-green-900" title="Proses Bagi Hasil">
                   <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                   </svg>
@@ -294,15 +287,7 @@
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
     </svg>
     <h3 class="mt-2 text-sm font-medium text-gray-900">Belum ada history bagi hasil</h3>
-    <p class="mt-1 text-sm text-gray-500">Mulai dengan menghitung bagi hasil untuk periode tertentu.</p>
-    <div class="mt-6">
-      <a href="{{ route('admin.bagi-hasil.calculate') }}" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
-        <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
-        </svg>
-        Hitung Bagi Hasil
-      </a>
-    </div>
+    <p class="mt-1 text-sm text-gray-500">Bagi hasil akan otomatis dibuat ketika penyewaan selesai.</p>
   </div>
   @endif
 </div>

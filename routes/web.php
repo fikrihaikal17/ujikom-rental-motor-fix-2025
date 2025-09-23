@@ -7,8 +7,8 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboard;
 use App\Http\Controllers\Admin\MotorVerificationController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
-use App\Http\Controllers\Admin\TarifController;
 use App\Http\Controllers\Admin\TransaksiController;
+use App\Http\Controllers\Admin\LaporanController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Owner\OwnerController;
 use App\Http\Controllers\Owner\DashboardController as OwnerDashboard;
@@ -72,24 +72,20 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 
     // Motor Verification
     Route::get('/motors', [MotorVerificationController::class, 'index'])->name('motors.index');
-    Route::get('/motors/export', [MotorVerificationController::class, 'export'])->name('motors.export');
+    Route::get('/motors/export', [MotorVerificationController::class, 'exportPdf'])->name('motors.export');
     Route::get('/motors/{motor}', [MotorVerificationController::class, 'show'])->name('motors.show');
     Route::patch('/motors/{motor}/verify', [MotorVerificationController::class, 'verify'])->name('motors.verify');
     Route::patch('/motors/{motor}/reject', [MotorVerificationController::class, 'reject'])->name('motors.reject');
 
     // User Management
+    Route::get('/users/export', [AdminUserController::class, 'exportPdf'])->name('users.export');
     Route::resource('users', AdminUserController::class);
-    Route::get('/users/export', [AdminUserController::class, 'export'])->name('users.export');
 
-    // Rental Tariff Management
-    Route::resource('tarif', TarifController::class);
-    Route::post('/tarif/{motor}/set-rates', [TarifController::class, 'setRates'])->name('tarif.set-rates');
-
-    // Transaction Management
+    // Transaction Management - using Penyewaan data as real transactions
     Route::get('/transaksi', [TransaksiController::class, 'index'])->name('transaksi.index');
-    Route::get('/transaksi/{transaksi}', [TransaksiController::class, 'show'])->name('transaksi.show');
-    Route::patch('/transaksi/{transaksi}/status', [TransaksiController::class, 'updateStatus'])->name('transaksi.update-status');
     Route::get('/transaksi/export', [TransaksiController::class, 'export'])->name('transaksi.export');
+    Route::get('/transaksi/{penyewaan}', [TransaksiController::class, 'show'])->name('transaksi.show');
+    Route::patch('/transaksi/{penyewaan}/status', [TransaksiController::class, 'updateStatus'])->name('transaksi.update-status');
 
     // Penyewaan Management
     Route::prefix('penyewaan')->name('penyewaan.')->group(function () {
@@ -101,7 +97,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
         Route::put('/{penyewaan}', [\App\Http\Controllers\Admin\PenyewaanController::class, 'update'])->name('update');
         Route::delete('/{penyewaan}', [\App\Http\Controllers\Admin\PenyewaanController::class, 'destroy'])->name('destroy');
         Route::patch('/{penyewaan}/status', [\App\Http\Controllers\Admin\PenyewaanController::class, 'updateStatus'])->name('update-status');
-        Route::get('/export/csv', [\App\Http\Controllers\Admin\PenyewaanController::class, 'exportCsv'])->name('export.csv');
+        Route::get('/export/pdf', [\App\Http\Controllers\Admin\PenyewaanController::class, 'exportPdf'])->name('export.pdf');
     });
 
     // Payments Management
@@ -125,7 +121,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
         Route::get('/', [\App\Http\Controllers\Admin\BagiHasilController::class, 'index'])->name('index');
         Route::get('/{bagiHasil}', [\App\Http\Controllers\Admin\BagiHasilController::class, 'show'])->name('show');
         Route::patch('/{bagiHasil}/process', [\App\Http\Controllers\Admin\BagiHasilController::class, 'process'])->name('process');
-        Route::get('/export/csv', [\App\Http\Controllers\Admin\BagiHasilController::class, 'exportCsv'])->name('export.csv');
+        Route::get('/export/pdf', [\App\Http\Controllers\Admin\BagiHasilController::class, 'exportPdf'])->name('export.pdf');
     });
 
     // Analytics
@@ -137,6 +133,16 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
         Route::get('/data/motors', [\App\Http\Controllers\Admin\AnalyticsController::class, 'motorsData'])->name('data.motors');
         Route::get('/data/times', [\App\Http\Controllers\Admin\AnalyticsController::class, 'timesData'])->name('data.times');
         Route::get('/data/payments', [\App\Http\Controllers\Admin\AnalyticsController::class, 'paymentsData'])->name('data.payments');
+    });
+
+    // Reports (Laporan)
+    Route::prefix('laporan')->name('laporan.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Admin\LaporanController::class, 'index'])->name('index');
+        Route::get('/revenue', [\App\Http\Controllers\Admin\LaporanController::class, 'revenue'])->name('revenue');
+        Route::get('/rental', [\App\Http\Controllers\Admin\LaporanController::class, 'rental'])->name('rental');
+        Route::get('/motor', [\App\Http\Controllers\Admin\LaporanController::class, 'motor'])->name('motor');
+        Route::get('/user', [\App\Http\Controllers\Admin\LaporanController::class, 'user'])->name('user');
+        Route::get('/export', [\App\Http\Controllers\Admin\LaporanController::class, 'export'])->name('export');
     });
 
     // Admin Settings
@@ -175,12 +181,15 @@ Route::middleware(['auth', 'owner'])->prefix('owner')->name('owner.')->group(fun
     // Revenue Reports
     Route::get('/revenue', [OwnerController::class, 'revenue'])->name('revenue');
     Route::get('/revenue/history', [OwnerController::class, 'revenueHistory'])->name('revenue.history');
+    Route::get('/revenue/history/export-pdf', [OwnerController::class, 'exportRevenueHistoryPDF'])->name('revenue.history.export.pdf');
     Route::get('/revenue/total', [OwnerController::class, 'totalRevenue'])->name('revenue.total');
     Route::get('/revenue/export', [OwnerController::class, 'exportRevenue'])->name('revenue.export');
+    Route::get('/revenue/export-pdf', [OwnerController::class, 'exportRevenuePDF'])->name('revenue.export.pdf');
 
     // Rental Reports
     Route::get('/rentals', [OwnerController::class, 'rentalsReport'])->name('rentals');
     Route::get('/rentals/report', [OwnerController::class, 'rentalsReport'])->name('rentals.report');
+    Route::get('/rentals/export-pdf', [OwnerController::class, 'exportRentalsPDF'])->name('rentals.export.pdf');
 
     // Profile and Settings
     Route::get('/profile', [OwnerController::class, 'profile'])->name('profile');
@@ -204,6 +213,7 @@ Route::middleware(['auth', 'renter'])->prefix('renter')->name('renter.')->group(
     Route::post('/bookings', [RenterController::class, 'storeBooking'])->name('bookings.store');
     Route::get('/bookings/{booking}', [RenterController::class, 'showBooking'])->name('bookings.show');
     Route::patch('/bookings/{booking}/cancel', [RenterController::class, 'cancelBooking'])->name('bookings.cancel');
+    Route::patch('/bookings/{booking}/confirm-return', [RenterController::class, 'confirmReturn'])->name('bookings.confirm-return');
 
     // History and Reports
     Route::get('/history', [RenterController::class, 'history'])->name('history');

@@ -298,16 +298,25 @@ class BagiHasil extends Model
   /**
    * Calculate revenue sharing from total amount
    */
-  public static function calculateSharing(float $totalAmount): array
+  public static function calculateSharing(float $totalAmount, ?Motor $motor = null): array
   {
-    $ownerShare = ($totalAmount * self::OWNER_PERCENTAGE) / 100;
-    $adminShare = ($totalAmount * self::ADMIN_PERCENTAGE) / 100;
+    // Use motor's custom percentages if available and approved, otherwise use defaults
+    if ($motor && $motor->revenue_sharing_approved) {
+      $ownerPercentage = $motor->owner_percentage;
+      $adminPercentage = $motor->admin_percentage;
+    } else {
+      $ownerPercentage = self::OWNER_PERCENTAGE;
+      $adminPercentage = self::ADMIN_PERCENTAGE;
+    }
+
+    $ownerShare = ($totalAmount * $ownerPercentage) / 100;
+    $adminShare = ($totalAmount * $adminPercentage) / 100;
 
     return [
       'owner_share' => round($ownerShare, 2),
       'admin_share' => round($adminShare, 2),
-      'owner_percentage' => self::OWNER_PERCENTAGE,
-      'admin_percentage' => self::ADMIN_PERCENTAGE,
+      'owner_percentage' => $ownerPercentage,
+      'admin_percentage' => $adminPercentage,
     ];
   }
 
@@ -316,7 +325,7 @@ class BagiHasil extends Model
    */
   public static function createFromRental(\App\Models\Penyewaan $penyewaan): self
   {
-    $sharing = self::calculateSharing($penyewaan->harga);
+    $sharing = self::calculateSharing($penyewaan->harga, $penyewaan->motor);
 
     return self::create([
       'penyewaan_id' => $penyewaan->id,

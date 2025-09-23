@@ -11,11 +11,11 @@
       <p class="mt-2 text-sm text-gray-700">Analisis data penyewaan motor dalam bentuk grafik dan chart.</p>
     </div>
     <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none space-x-3 flex">
-      <a href="{{ route('admin.analytics.export') }}" class="inline-flex items-center justify-center rounded-md border border-transparent bg-green-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 sm:w-auto">
+      <a href="{{ route('admin.analytics.export') }}" class="inline-flex items-center justify-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 sm:w-auto">
         <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
         </svg>
-        Export Data
+        Export PDF
       </a>
       <div class="relative">
         <select id="periodSelect" class="inline-flex items-center justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 sm:w-auto">
@@ -44,13 +44,15 @@
           <dl>
             <dt class="text-sm font-medium text-gray-500 truncate">Total Booking</dt>
             <dd class="text-lg font-medium text-gray-900 flex items-center">
-              <span>{{ $totalBookings ?? 142 }}</span>
+              <span>{{ $totalBookings }}</span>
+              @if($totalBookings > 0)
               <span class="ml-2 flex items-center text-sm text-green-600">
                 <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
                   <path fill-rule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
                 </svg>
-                +23.5%
+                Data Real
               </span>
+              @endif
             </dd>
           </dl>
         </div>
@@ -70,13 +72,15 @@
           <dl>
             <dt class="text-sm font-medium text-gray-500 truncate">Total Revenue</dt>
             <dd class="text-lg font-medium text-gray-900 flex items-center">
-              <span>Rp {{ number_format($totalRevenue ?? 48500000, 0, ',', '.') }}</span>
+              <span>Rp {{ number_format($totalRevenue, 0, ',', '.') }}</span>
+              @if($totalRevenue > 0)
               <span class="ml-2 flex items-center text-sm text-green-600">
                 <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
                   <path fill-rule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
                 </svg>
-                +32.1%
+                Data Real
               </span>
+              @endif
             </dd>
           </dl>
         </div>
@@ -96,13 +100,15 @@
           <dl>
             <dt class="text-sm font-medium text-gray-500 truncate">Motor Aktif</dt>
             <dd class="text-lg font-medium text-gray-900 flex items-center">
-              <span>{{ $totalMotors ?? 25 }}</span>
+              <span>{{ $totalMotors }}</span>
+              @if($totalMotors > 0)
               <span class="ml-2 flex items-center text-sm text-green-600">
                 <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
                   <path fill-rule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
                 </svg>
-                +12.5%
+                Data Real
               </span>
+              @endif
             </dd>
           </dl>
         </div>
@@ -120,8 +126,8 @@
         </div>
         <div class="ml-5 w-0 flex-1">
           <dl>
-            <dt class="text-sm font-medium text-gray-500 truncate">Avg. Durasi</dt>
-            <dd class="text-lg font-medium text-gray-900">{{ $stats['avg_duration'] ?? 0 }} hari</dd>
+            <dt class="text-sm font-medium text-gray-500 truncate">Total Users</dt>
+            <dd class="text-lg font-medium text-gray-900">{{ $totalUsers }} pengguna</dd>
           </dl>
         </div>
       </div>
@@ -192,54 +198,68 @@
   // Chart instances - store globally to manage destroy/recreate
   let bookingTrendChart, revenueChart, motorTypeChart, popularHoursChart, statusChart;
 
-  // Sample data - in real app, this would come from Laravel backend
+  // Real data from Laravel backend
+  const monthlyBookingsData = @json($monthlyBookings);
+  const monthlyRevenueData = @json($monthlyRevenue);
+  const motorTypesData = @json($motorTypes);
+  const popularTimesData = @json($popularTimes);
+  const statusDistributionData = @json($statusDistribution);
+
   const chartData = {
     bookingTrend: {
-      labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+      labels: monthlyBookingsData.map(item => {
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        return months[item.month - 1];
+      }),
       datasets: [{
         label: 'Jumlah Booking',
-        data: [12, 19, 25, 30, 35, 42],
+        data: monthlyBookingsData.map(item => item.count),
         borderColor: 'rgb(59, 130, 246)',
         backgroundColor: 'rgba(59, 130, 246, 0.1)',
         tension: 0.4
       }]
     },
     revenue: {
-      labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+      labels: monthlyRevenueData.map(item => {
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        return months[item.month - 1];
+      }),
       datasets: [{
         label: 'Revenue (Juta Rp)',
-        data: [15, 22, 28, 35, 42, 48],
+        data: monthlyRevenueData.map(item => Math.round(item.total / 1000000 * 10) / 10),
         backgroundColor: 'rgba(16, 185, 129, 0.8)',
         borderColor: 'rgb(16, 185, 129)',
         borderWidth: 1
       }]
     },
     motorType: {
-      labels: ['Matic', 'Manual', 'Sport', 'Bebek'],
+      labels: motorTypesData.map(item => item.merk),
       datasets: [{
-        data: [45, 25, 20, 10],
+        data: motorTypesData.map(item => item.count),
         backgroundColor: [
           'rgba(59, 130, 246, 0.8)',
           'rgba(16, 185, 129, 0.8)',
           'rgba(245, 158, 11, 0.8)',
-          'rgba(239, 68, 68, 0.8)'
+          'rgba(239, 68, 68, 0.8)',
+          'rgba(147, 51, 234, 0.8)',
+          'rgba(236, 72, 153, 0.8)'
         ]
       }]
     },
     popularHours: {
-      labels: ['06:00', '08:00', '10:00', '12:00', '14:00', '16:00', '18:00', '20:00'],
+      labels: popularTimesData.map(item => String(item.hour).padStart(2, '0') + ':00'),
       datasets: [{
         label: 'Jumlah Booking',
-        data: [2, 8, 15, 12, 18, 25, 20, 8],
+        data: popularTimesData.map(item => item.count),
         backgroundColor: 'rgba(147, 51, 234, 0.8)',
         borderColor: 'rgb(147, 51, 234)',
         borderWidth: 1
       }]
     },
     status: {
-      labels: ['Selesai', 'Berlangsung', 'Pending', 'Dibatalkan'],
+      labels: Object.keys(statusDistributionData),
       datasets: [{
-        data: [60, 25, 10, 5],
+        data: Object.values(statusDistributionData),
         backgroundColor: [
           'rgba(16, 185, 129, 0.8)',
           'rgba(59, 130, 246, 0.8)',

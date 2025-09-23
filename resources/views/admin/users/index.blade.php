@@ -11,11 +11,11 @@
       <p class="mt-2 text-sm text-gray-700">Daftar semua pengguna yang terdaftar di sistem RideNow.</p>
     </div>
     <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none space-x-3 flex">
-      <a href="{{ route('admin.users.export') }}" class="inline-flex items-center justify-center rounded-md border border-transparent bg-green-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 sm:w-auto">
+      <a href="#" onclick="exportPDF()" class="inline-flex items-center justify-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 sm:w-auto">
         <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
         </svg>
-        Export CSV
+        Export PDF
       </a>
       <a href="{{ route('admin.users.create') }}" class="inline-flex items-center justify-center rounded-md border border-transparent bg-primary-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 sm:w-auto">
         <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -62,19 +62,34 @@
 <div class="bg-white shadow rounded-lg overflow-hidden">
   <div class="px-4 py-5 sm:p-6">
     <!-- Search and Filter -->
-    <div class="mb-4 flex flex-col sm:flex-row gap-4">
-      <div class="flex-1">
-        <input type="text" name="search" placeholder="Cari pengguna..." class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm">
+    <form method="GET" action="{{ route('admin.users.index') }}" id="filter-form">
+      <div class="mb-4 flex flex-col sm:flex-row gap-4">
+        <div class="flex-1">
+          <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari pengguna..." class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm">
+        </div>
+        <div class="sm:w-48">
+          <select name="role" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm">
+            <option value="">Semua Role</option>
+            <option value="admin" {{ request('role') == 'admin' ? 'selected' : '' }}>Admin</option>
+            <option value="pemilik" {{ request('role') == 'pemilik' ? 'selected' : '' }}>Pemilik Kendaraan</option>
+            <option value="penyewa" {{ request('role') == 'penyewa' ? 'selected' : '' }}>Penyewa</option>
+          </select>
+        </div>
+        <div class="flex gap-2">
+          <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+            <svg class="-ml-1 mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+            </svg>
+            Filter
+          </button>
+          @if(request('search') || request('role'))
+          <a href="{{ route('admin.users.index') }}" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+            Reset
+          </a>
+          @endif
+        </div>
       </div>
-      <div class="sm:w-48">
-        <select name="role" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm">
-          <option value="">Semua Role</option>
-          <option value="admin">Admin</option>
-          <option value="pemilik">Pemilik Kendaraan</option>
-          <option value="penyewa">Penyewa</option>
-        </select>
-      </div>
-    </div>
+    </form>
 
     @if($users->count() > 0)
     <div class="overflow-x-auto">
@@ -183,4 +198,29 @@
     @endif
   </div>
 </div>
+
+<script>
+  // Export PDF function that includes current filters
+  function exportPDF() {
+    const form = document.getElementById('filter-form');
+    const formData = new FormData(form);
+
+    // Build URL with current filters
+    let exportUrl = '{{ route("admin.users.export") }}';
+
+    const params = new URLSearchParams();
+    for (let [key, value] of formData.entries()) {
+      if (value) {
+        params.append(key, value);
+      }
+    }
+
+    if (params.toString()) {
+      exportUrl += '?' + params.toString();
+    }
+
+    // Navigate to export URL
+    window.location.href = exportUrl;
+  }
+</script>
 @endsection

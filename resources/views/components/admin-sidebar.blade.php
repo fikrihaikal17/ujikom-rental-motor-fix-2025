@@ -25,14 +25,6 @@
     Verifikasi Motor
   </a>
 
-  <!-- Tarif Management -->
-  <a href="{{ route('admin.tarif.index') }}" class="{{ request()->routeIs('admin.tarif.*') ? 'bg-primary-100 text-primary-900' : 'text-gray-700 hover:text-gray-900 hover:bg-gray-50' }} group flex items-center px-2 py-2 text-sm font-medium rounded-md">
-    <svg class="{{ request()->routeIs('admin.tarif.*') ? 'text-primary-500' : 'text-gray-400 group-hover:text-gray-500' }} mr-3 flex-shrink-0 h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
-    </svg>
-    Kelola Tarif
-  </a>
-
   <!-- Penyewaan Management -->
   <a href="{{ route('admin.penyewaan.index') }}" class="{{ request()->routeIs('admin.penyewaan.*') ? 'bg-primary-100 text-primary-900' : 'text-gray-700 hover:text-gray-900 hover:bg-gray-50' }} group flex items-center px-2 py-2 text-sm font-medium rounded-md">
     <svg class="{{ request()->routeIs('admin.penyewaan.*') ? 'text-primary-500' : 'text-gray-400 group-hover:text-gray-500' }} mr-3 flex-shrink-0 h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -73,18 +65,7 @@
     Grafik & Analytics
   </a>
 
-  <!-- Reports -->
-  <div class="space-y-1">
-    <div class="text-gray-400 px-2 py-2 text-xs font-semibold uppercase tracking-wider">
-      Laporan
-    </div>
-    <a href="{{ route('admin.payments.report') }}" class="{{ request()->routeIs('admin.payments.report') ? 'bg-primary-100 text-primary-900' : 'text-gray-700 hover:text-gray-900 hover:bg-gray-50' }} group flex items-center px-2 py-2 text-sm font-medium rounded-md">
-      <svg class="{{ request()->routeIs('admin.payments.report') ? 'text-primary-500' : 'text-gray-400 group-hover:text-gray-500' }} mr-3 flex-shrink-0 h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
-      </svg>
-      Laporan Pembayaran
-    </a>
-  </div>
+
 
   <!-- Settings -->
   <a href="{{ route('admin.settings.index') }}" class="{{ request()->routeIs('admin.settings.*') ? 'bg-primary-100 text-primary-900' : 'text-gray-700 hover:text-gray-900 hover:bg-gray-50' }} group flex items-center px-2 py-2 text-sm font-medium rounded-md">

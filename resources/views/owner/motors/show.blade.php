@@ -180,8 +180,8 @@
             @foreach($motor->penyewaans->take(10) as $penyewaan)
             <tr>
               <td class="px-6 py-4 whitespace-nowrap">
-                <div class="text-sm font-medium text-gray-900">{{ $penyewaan->user->nama }}</div>
-                <div class="text-sm text-gray-500">{{ $penyewaan->user->email }}</div>
+                <div class="text-sm font-medium text-gray-900">{{ $penyewaan->penyewa->nama }}</div>
+                <div class="text-sm text-gray-500">{{ $penyewaan->penyewa->email }}</div>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                 {{ \Carbon\Carbon::parse($penyewaan->tanggal_mulai)->format('d M Y') }} -

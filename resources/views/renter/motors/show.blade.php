@@ -21,8 +21,8 @@
       <!-- Motor Image -->
       <div class="md:w-1/2">
         <div class="h-96 bg-gray-300 flex items-center justify-center">
-          @if($motor->foto_motor)
-          <img src="{{ asset('storage/' . $motor->foto_motor) }}" alt="{{ $motor->nama_motor }}"
+          @if($motor->photo)
+          <img src="{{ asset('storage/' . $motor->photo) }}" alt="{{ $motor->nama_motor }}"
             class="w-full h-full object-cover">
           @else
           <div class="text-center text-gray-500">
@@ -247,39 +247,35 @@
     let price = 0;
     let durationText = '';
 
-    @if ($motor -> tarifRental)
-      // eslint-disable-next-line
-      const tarifHarian = {{ $motor-> tarifRental -> tarif_harian
-  }};
-  // eslint-disable-next-line
-  const tarifMingguan = {{ $motor-> tarifRental -> tarif_mingguan }};
-  // eslint-disable-next-line
-  const tarifBulanan = {{ $motor-> tarifRental -> tarif_bulanan }};
+    @if($motor->tarifRental)
+    const tarifHarian = {{ $motor->tarifRental->tarif_harian ?? 0 }};
+    const tarifMingguan = {{ $motor->tarifRental->tarif_mingguan ?? 0 }};
+    const tarifBulanan = {{ $motor->tarifRental->tarif_bulanan ?? 0 }};
 
-  switch (tipeDurasi) {
-    case 'harian':
-      price = tarifHarian * daysDiff;
-      durationText = daysDiff + ' hari';
-      break;
-    case 'mingguan':
-      const weeks = Math.ceil(daysDiff / 7);
-      price = tarifMingguan * weeks;
-      durationText = weeks + ' minggu (' + daysDiff + ' hari)';
-      break;
-    case 'bulanan':
-      const months = Math.ceil(daysDiff / 30);
-      price = tarifBulanan * months;
-      durationText = months + ' bulan (' + daysDiff + ' hari)';
-      break;
-  }
-  @endif
+    switch (tipeDurasi) {
+      case 'harian':
+        price = tarifHarian * daysDiff;
+        durationText = daysDiff + ' hari';
+        break;
+      case 'mingguan':
+        const weeks = Math.ceil(daysDiff / 7);
+        price = tarifMingguan * weeks;
+        durationText = weeks + ' minggu (' + daysDiff + ' hari)';
+        break;
+      case 'bulanan':
+        const months = Math.ceil(daysDiff / 30);
+        price = tarifBulanan * months;
+        durationText = months + ' bulan (' + daysDiff + ' hari)';
+        break;
+    }
+    @endif
 
-  document.getElementById('totalPrice').textContent = 'Rp ' + price.toLocaleString('id-ID');
-  document.getElementById('duration').textContent = durationText;
+    document.getElementById('totalPrice').textContent = 'Rp ' + price.toLocaleString('id-ID');
+    document.getElementById('duration').textContent = durationText;
   }
 
   // Set minimum date for tanggal_selesai when tanggal_mulai changes
-  document.getElementById('tanggal_mulai').addEventListener('change', function () {
+  document.getElementById('tanggal_mulai').addEventListener('change', function() {
     const tanggalMulai = this.value;
     const tanggalSelesai = document.getElementById('tanggal_selesai');
     tanggalSelesai.min = tanggalMulai;
@@ -292,7 +288,7 @@
   });
 
   // Close modal when clicking outside
-  document.getElementById('bookingModal').addEventListener('click', function (e) {
+  document.getElementById('bookingModal').addEventListener('click', function(e) {
     if (e.target === this) {
       closeBookingModal();
     }

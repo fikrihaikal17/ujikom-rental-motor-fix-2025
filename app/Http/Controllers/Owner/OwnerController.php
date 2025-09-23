@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class OwnerController extends Controller
 {
@@ -45,7 +46,7 @@ class OwnerController extends Controller
     // Recent rentals
     $recentRentals = Penyewaan::whereHas('motor', function ($q) use ($owner) {
       $q->where('pemilik_id', $owner->id);
-    })->with(['motor', 'renter'])->latest()->take(5)->get();
+    })->with(['motor', 'penyewa'])->latest()->take(5)->get();
 
     // Revenue trend (last 6 months)
     $labels = [];
@@ -115,12 +116,14 @@ class OwnerController extends Controller
       'model' => 'required|string|max:255',
       'tahun' => 'required|integer|min:2010|max:' . date('Y'),
       'tipe_cc' => 'required|in:100,125,150',
-      'no_plat' => 'required|string|max:20|unique:motors,no_plat',
+      'no_plat' => 'nullable|string|max:20|unique:motors,no_plat',
       'warna' => 'nullable|string|max:50',
       'harga_per_hari' => 'required|string|max:255',
       'deskripsi' => 'required|string|max:1000',
       'foto_motor' => 'required|image|mimes:jpeg,png,jpg|max:2048',
       'dokumen_kepemilikan' => 'required|file|mimes:pdf,jpeg,png,jpg|max:5120', // 5MB max
+      'requested_owner_percentage' => 'nullable|numeric|min:50|max:90',
+      'revenue_sharing_notes' => 'nullable|string|max:500',
     ]);
 
     $owner = Auth::user();
@@ -161,20 +164,30 @@ class OwnerController extends Controller
       $dokumenPath = $file->storeAs('motors/documents', $fileName, 'public');
     }
 
-    Motor::create([
+    $motor = Motor::create([
       'pemilik_id' => $owner->id,
       'merk' => $request->merk,
       'nama_motor' => $request->nama_motor,
       'model' => $request->model,
       'tahun' => $request->tahun,
       'tipe_cc' => $tipe_cc,
-      'no_plat' => strtoupper($request->no_plat),
-      'warna' => $request->warna,
+      'no_plat' => $request->no_plat ? strtoupper($request->no_plat) : null,
       'warna' => $request->warna,
       'deskripsi' => $request->deskripsi,
       'photo' => $fotoPath,
       'dokumen_kepemilikan' => $dokumenPath,
       'status' => 'pending',
+      'requested_owner_percentage' => $request->requested_owner_percentage ?? 70.00,
+      'revenue_sharing_notes' => $request->revenue_sharing_notes,
+    ]);
+
+    // Create tarif rental entry
+    TarifRental::create([
+      'motor_id' => $motor->id,
+      'tarif_harian' => $harga,
+      'tarif_mingguan' => $harga * 6, // 6x daily rate for weekly
+      'tarif_bulanan' => $harga * 25, // 25x daily rate for monthly
+      'is_active' => true,
     ]);
 
     return redirect()->route('owner.motors.index')
@@ -188,7 +201,7 @@ class OwnerController extends Controller
       abort(403, 'Unauthorized access');
     }
 
-    $motor->load(['tarifRental', 'penyewaans.renter', 'penyewaans.bagiHasil']);
+    $motor->load(['tarifRental', 'penyewaans.penyewa', 'penyewaans.bagiHasil']);
 
     // Calculate revenue statistics
     $totalRevenue = BagiHasil::whereHas('penyewaan', function ($q) use ($motor) {
@@ -326,7 +339,7 @@ class OwnerController extends Controller
     // Recent transactions
     $recentTransactions = BagiHasil::whereHas('penyewaan.motor', function ($q) use ($owner) {
       $q->where('pemilik_id', $owner->id);
-    })->with(['penyewaan.motor', 'penyewaan.renter'])
+    })->with(['penyewaan.motor', 'penyewaan.penyewa'])
       ->latest()
       ->take(10)
       ->get();
@@ -348,22 +361,24 @@ class OwnerController extends Controller
       $file = fopen('php://output', 'w');
 
       // Header CSV
-      fputcsv($file, ['Tanggal', 'Motor', 'Penyewa', 'Durasi Sewa', 'Total Sewa', 'Bagi Hasil Owner', 'Status Settlement']);
+      fputcsv($file, ['Tanggal', 'Motor', 'Penyewa', 'Durasi Sewa', 'Total Sewa', 'Status']);
 
-      // Data
-      $revenues = BagiHasil::whereHas('penyewaan.motor', function ($q) use ($owner) {
+      // Data from completed rentals
+      $revenues = Penyewaan::whereHas('motor', function ($q) use ($owner) {
         $q->where('pemilik_id', $owner->id);
-      })->with(['penyewaan.motor', 'penyewaan.renter'])->get();
+      })
+        ->where('status', BookingStatus::COMPLETED)
+        ->with(['motor', 'penyewa'])
+        ->get();
 
       foreach ($revenues as $revenue) {
         fputcsv($file, [
           $revenue->created_at->format('Y-m-d'),
-          $revenue->penyewaan->motor->merk . ' ' . $revenue->penyewaan->motor->model,
-          $revenue->penyewaan->renter->nama,
-          $revenue->penyewaan->tipe_durasi,
-          'Rp ' . number_format($revenue->penyewaan->harga, 0, ',', '.'),
-          'Rp ' . number_format($revenue->bagi_hasil_pemilik, 0, ',', '.'),
-          $revenue->settled_at ? 'Settled' : 'Pending'
+          $revenue->motor->merk,
+          $revenue->penyewa->nama,
+          $revenue->tipe_durasi->getDisplayName(),
+          'Rp ' . number_format($revenue->harga, 0, ',', '.'),
+          $revenue->status->getDisplayName()
         ]);
       }
 
@@ -371,6 +386,55 @@ class OwnerController extends Controller
     };
 
     return response()->stream($callback, 200, $headers);
+  }
+
+  /**
+   * Export revenue report to PDF
+   */
+  public function exportRevenuePDF()
+  {
+    $owner = Auth::user();
+
+    // Get monthly revenue data
+    $monthlyData = Penyewaan::whereHas('motor', function ($query) use ($owner) {
+      $query->where('pemilik_id', $owner->id);
+    })
+      ->where('status', BookingStatus::COMPLETED)
+      ->selectRaw('MONTH(created_at) as month, SUM(harga) as total, COUNT(*) as count')
+      ->whereYear('created_at', now()->year)
+      ->groupBy('month')
+      ->orderBy('month')
+      ->get();
+
+    // Get top performing motors
+    $topMotors = Motor::where('pemilik_id', $owner->id)
+      ->withSum(['penyewaans as total_revenue' => function ($query) {
+        $query->where('status', BookingStatus::COMPLETED)
+          ->whereYear('created_at', now()->year);
+      }], 'harga')
+      ->having('total_revenue', '>', 0)
+      ->orderByDesc('total_revenue')
+      ->take(5)
+      ->get();
+
+    // Calculate total revenue for the year
+    $totalYearRevenue = Penyewaan::whereHas('motor', function ($query) use ($owner) {
+      $query->where('pemilik_id', $owner->id);
+    })
+      ->where('status', BookingStatus::COMPLETED)
+      ->whereYear('created_at', now()->year)
+      ->sum('harga');
+
+    $pdf = Pdf::loadView('owner.revenue.pdf', compact(
+      'owner',
+      'monthlyData',
+      'topMotors',
+      'totalYearRevenue'
+    ));
+
+    $filename = 'laporan_pendapatan_' . $owner->nama . '_' . now()->year . '.pdf';
+
+    return $pdf->download($filename);
   }
 
   /**
@@ -382,7 +446,7 @@ class OwnerController extends Controller
 
     $rentals = Penyewaan::whereHas('motor', function ($q) use ($owner) {
       $q->where('pemilik_id', $owner->id);
-    })->with(['motor', 'renter', 'payments'])->latest()->paginate(15);
+    })->with(['motor', 'penyewa', 'payments'])->latest()->paginate(15);
 
     return view('owner.rentals.index', compact('rentals'));
   }
@@ -399,7 +463,7 @@ class OwnerController extends Controller
       abort(403, 'Unauthorized access');
     }
 
-    $penyewaan->load(['motor', 'renter', 'payments', 'bagiHasil']);
+    $penyewaan->load(['motor', 'penyewa', 'payments', 'bagiHasil']);
 
     return view('owner.rentals.show', compact('penyewaan'));
   }
@@ -476,7 +540,7 @@ class OwnerController extends Controller
     $revenueHistory = BagiHasil::whereHas('penyewaan.motor', function ($q) use ($owner) {
       $q->where('pemilik_id', $owner->id);
     })
-      ->with(['penyewaan.motor', 'penyewaan.renter'])
+      ->with(['penyewaan.motor', 'penyewaan.penyewa'])
       ->orderBy('created_at', 'desc')
       ->paginate(15);
 
@@ -520,32 +584,37 @@ class OwnerController extends Controller
   {
     $owner = Auth::user();
 
-    // Get monthly revenue breakdown for charts
-    $monthlyData = BagiHasil::whereHas('penyewaan.motor', function ($query) use ($owner) {
+    // Get monthly revenue breakdown for charts from completed rentals
+    $monthlyData = Penyewaan::whereHas('motor', function ($query) use ($owner) {
       $query->where('pemilik_id', $owner->id);
     })
-      ->selectRaw('MONTH(created_at) as month, SUM(bagi_hasil_pemilik) as total')
+      ->where('status', BookingStatus::COMPLETED)
+      ->selectRaw('MONTH(created_at) as month, SUM(harga) as total')
       ->whereYear('created_at', now()->year)
       ->groupBy('month')
       ->orderBy('month')
       ->get();
 
-    // Get top performing motors  
+    // Get top performing motors based on total earnings
     $topMotors = Motor::where('pemilik_id', $owner->id)
-      ->with(['penyewaans' => function ($query) {
-        $query->with('bagiHasil')->whereYear('created_at', now()->year);
-      }])
-      ->get()
-      ->map(function ($motor) {
-        $motor->total_revenue = $motor->penyewaans->sum(function ($penyewaan) {
-          return $penyewaan->bagiHasil ? $penyewaan->bagiHasil->bagi_hasil_pemilik : 0;
-        });
-        return $motor;
-      })
-      ->sortByDesc('total_revenue')
-      ->take(5);
+      ->withSum(['penyewaans as total_revenue' => function ($query) {
+        $query->where('status', BookingStatus::COMPLETED)
+          ->whereYear('created_at', now()->year);
+      }], 'harga')
+      ->having('total_revenue', '>', 0)
+      ->orderByDesc('total_revenue')
+      ->take(5)
+      ->get();
 
-    return view('owner.revenue.total', compact('monthlyData', 'topMotors'));
+    // Calculate total revenue for the year
+    $totalYearRevenue = Penyewaan::whereHas('motor', function ($query) use ($owner) {
+      $query->where('pemilik_id', $owner->id);
+    })
+      ->where('status', BookingStatus::COMPLETED)
+      ->whereYear('created_at', now()->year)
+      ->sum('harga');
+
+    return view('owner.revenue.total', compact('monthlyData', 'topMotors', 'totalYearRevenue'));
   }
 
   /**
@@ -572,11 +641,11 @@ class OwnerController extends Controller
       ->where('status', BookingStatus::COMPLETED)
       ->count();
 
-    // Get recent rentals
+    // Get recent rentals using Eloquent with proper relationship loading
     $recentRentals = Penyewaan::whereHas('motor', function ($query) use ($owner) {
       $query->where('pemilik_id', $owner->id);
     })
-      ->with(['motor', 'renter'])
+      ->with(['motor:id,merk,no_plat', 'penyewa:id,nama'])
       ->orderBy('created_at', 'desc')
       ->paginate(10);
 
@@ -597,6 +666,62 @@ class OwnerController extends Controller
       'recentRentals',
       'monthlyRentals'
     ));
+  }
+
+  /**
+   * Export rentals report to PDF
+   */
+  public function exportRentalsPDF()
+  {
+    $owner = Auth::user();
+
+    // Get rental statistics
+    $totalRentals = Penyewaan::whereHas('motor', function ($query) use ($owner) {
+      $query->where('pemilik_id', $owner->id);
+    })->count();
+
+    $activeRentals = Penyewaan::whereHas('motor', function ($query) use ($owner) {
+      $query->where('pemilik_id', $owner->id);
+    })
+      ->where('status', BookingStatus::ACTIVE)
+      ->count();
+
+    $completedRentals = Penyewaan::whereHas('motor', function ($query) use ($owner) {
+      $query->where('pemilik_id', $owner->id);
+    })
+      ->where('status', BookingStatus::COMPLETED)
+      ->count();
+
+    // Get all rentals for the report
+    $allRentals = Penyewaan::whereHas('motor', function ($query) use ($owner) {
+      $query->where('pemilik_id', $owner->id);
+    })
+      ->with(['motor:id,merk,no_plat', 'penyewa:id,nama'])
+      ->orderBy('created_at', 'desc')
+      ->get();
+
+    // Monthly rental count for chart
+    $monthlyRentals = Penyewaan::whereHas('motor', function ($query) use ($owner) {
+      $query->where('pemilik_id', $owner->id);
+    })
+      ->selectRaw('MONTH(created_at) as month, COUNT(*) as total')
+      ->whereYear('created_at', now()->year)
+      ->groupBy('month')
+      ->orderBy('month')
+      ->get();
+
+    $pdf = Pdf::loadView('owner.reports.rentals-pdf', compact(
+      'owner',
+      'totalRentals',
+      'activeRentals',
+      'completedRentals',
+      'allRentals',
+      'monthlyRentals'
+    ));
+
+    $filename = 'laporan_penyewaan_' . $owner->nama . '_' . now()->format('Y-m-d') . '.pdf';
+
+    return $pdf->download($filename);
   }
 
   /**
@@ -644,5 +769,39 @@ class OwnerController extends Controller
     ]);
 
     return redirect()->back()->with('success', 'Motor berhasil diaktifkan kembali.');
+  }
+
+  /**
+   * Export revenue history to PDF
+   */
+  public function exportRevenueHistoryPDF()
+  {
+    $owner = Auth::user();
+
+    // Get all revenue history data (without pagination for PDF)
+    $revenueHistory = BagiHasil::whereHas('penyewaan.motor', function ($q) use ($owner) {
+      $q->where('pemilik_id', $owner->id);
+    })
+      ->with(['penyewaan.motor', 'penyewaan.user'])
+      ->orderBy('created_at', 'desc')
+      ->get();
+
+    // Get revenue statistics
+    $stats = [
+      'total_revenue' => BagiHasil::whereHas('penyewaan.motor', function ($q) use ($owner) {
+        $q->where('pemilik_id', $owner->id);
+      })->sum('bagi_hasil_pemilik'),
+      'this_month' => BagiHasil::whereHas('penyewaan.motor', function ($q) use ($owner) {
+        $q->where('pemilik_id', $owner->id);
+      })->whereMonth('created_at', now()->month)->sum('bagi_hasil_pemilik'),
+      'this_year' => BagiHasil::whereHas('penyewaan.motor', function ($q) use ($owner) {
+        $q->where('pemilik_id', $owner->id);
+      })->whereYear('created_at', now()->year)->sum('bagi_hasil_pemilik'),
+      'total_transactions' => $revenueHistory->count(),
+    ];
+
+    $pdf = PDF::loadView('owner.revenue.history-pdf', compact('revenueHistory', 'stats', 'owner'));
+
+    return $pdf->download('riwayat-pendapatan-' . now()->format('Y-m-d') . '.pdf');
   }
 }

@@ -31,6 +31,11 @@ class Motor extends Model
     'admin_notes',
     'verified_at',
     'verified_by',
+    'owner_percentage',
+    'admin_percentage',
+    'requested_owner_percentage',
+    'revenue_sharing_notes',
+    'revenue_sharing_approved',
   ];
 
   protected function casts(): array
@@ -39,6 +44,10 @@ class Motor extends Model
       'status' => MotorStatus::class,
       'tipe_cc' => MotorType::class,
       'verified_at' => 'datetime',
+      'owner_percentage' => 'decimal:2',
+      'admin_percentage' => 'decimal:2',
+      'requested_owner_percentage' => 'decimal:2',
+      'revenue_sharing_approved' => 'boolean',
     ];
   }
 
@@ -48,6 +57,14 @@ class Motor extends Model
   public function owner(): BelongsTo
   {
     return $this->belongsTo(User::class, 'pemilik_id');
+  }
+
+  /**
+   * Get the admin who verified this motor
+   */
+  public function verifiedBy(): BelongsTo
+  {
+    return $this->belongsTo(User::class, 'verified_by');
   }
 
   /**

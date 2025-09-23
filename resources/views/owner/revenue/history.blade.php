@@ -6,9 +6,20 @@
 <div class="py-6">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <!-- Header -->
-    <div class="mb-8">
-      <h1 class="text-3xl font-bold text-gray-900">Riwayat Pendapatan</h1>
-      <p class="text-gray-600 mt-2">Lihat riwayat lengkap pendapatan dari penyewaan motor Anda</p>
+    <div class="mb-8 flex justify-between items-center">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900">Riwayat Pendapatan</h1>
+        <p class="text-gray-600 mt-2">Lihat riwayat lengkap pendapatan dari penyewaan motor Anda</p>
+      </div>
+      <div>
+        <a href="{{ route('owner.revenue.history.export.pdf') }}"
+          class="inline-flex items-center px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition duration-150 ease-in-out shadow-sm">
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+          </svg>
+          Ekspor PDF
+        </a>
+      </div>
     </div>
 
     <!-- Summary Card -->
@@ -25,7 +36,7 @@
         <h3 class="text-lg font-medium text-gray-900">Riwayat Bagi Hasil</h3>
       </div>
 
-      @if($monthlyRevenue->count() > 0)
+      @if($revenueHistory->count() > 0)
       <div class="overflow-x-auto">
         <table class="min-w-full divide-y divide-gray-200">
           <thead class="bg-gray-50">
@@ -48,21 +59,21 @@
             </tr>
           </thead>
           <tbody class="bg-white divide-y divide-gray-200">
-            @foreach($monthlyRevenue as $revenue)
+            @foreach($revenueHistory as $revenue)
             <tr class="hover:bg-gray-50">
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                 {{ $revenue->created_at->format('d M Y') }}
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
                 <div class="text-sm font-medium text-gray-900">
-                  {{ $revenue->penyewaan->motor->nama }}
+                  {{ $revenue->penyewaan->motor->merk }}
                 </div>
                 <div class="text-sm text-gray-500">
-                  {{ $revenue->penyewaan->motor->nomor_plat }}
+                  {{ $revenue->penyewaan->motor->no_plat }}
                 </div>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                {{ $revenue->penyewaan->user->name }}
+                {{ $revenue->penyewaan->user->nama }}
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
                 <span class="text-lg font-semibold text-green-600">
@@ -82,7 +93,7 @@
 
       <!-- Pagination -->
       <div class="px-6 py-4 bg-gray-50 border-t border-gray-200">
-        {{ $monthlyRevenue->links() }}
+        {{ $revenueHistory->links() }}
       </div>
       @else
       <div class="p-12 text-center">

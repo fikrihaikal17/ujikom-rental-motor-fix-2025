@@ -65,6 +65,9 @@
         <label for="status" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
         <select name="status" id="status" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
           <option value="">Semua Status</option>
+          <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Menunggu Konfirmasi</option>
+          <option value="confirmed" {{ request('status') == 'confirmed' ? 'selected' : '' }}>Dikonfirmasi</option>
+          <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Sedang Berlangsung</option>
           <option value="completed" {{ request('status') == 'completed' ? 'selected' : '' }}>Selesai</option>
           <option value="cancelled" {{ request('status') == 'cancelled' ? 'selected' : '' }}>Dibatalkan</option>
         </select>
@@ -149,6 +152,7 @@
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Periode</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Durasi</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pembayaran</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
           </tr>
@@ -199,10 +203,31 @@
               </div>
             </td>
             <td class="px-6 py-4 whitespace-nowrap">
+              <div class="flex items-center">
+                <svg class="h-4 w-4 mr-2 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z"></path>
+                </svg>
+                <div>
+                  <div class="text-sm text-gray-900">COD/Cash</div>
+                  @if($booking->status->value == 'completed')
+                  <div class="text-xs text-green-600">Lunas</div>
+                  @elseif($booking->status->value == 'cancelled')
+                  <div class="text-xs text-red-600">Dibatalkan</div>
+                  @elseif($booking->status->value == 'confirmed' || $booking->status->value == 'active')
+                  <div class="text-xs text-blue-600">Sedang Berlangsung</div>
+                  @else
+                  <div class="text-xs text-yellow-600">Pending</div>
+                  @endif
+                </div>
+              </div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
               <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
                                     @if($booking->status->value == 'completed') bg-green-100 text-green-800
-                                    @else bg-red-100 text-red-800 @endif">
-                {{ ucfirst($booking->status->value) }}
+                                    @elseif($booking->status->value == 'cancelled') bg-red-100 text-red-800
+                                    @elseif($booking->status->value == 'confirmed' || $booking->status->value == 'active') bg-blue-100 text-blue-800
+                                    @else bg-yellow-100 text-yellow-800 @endif">
+                {{ $booking->status->getDisplayName() }}
               </span>
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">

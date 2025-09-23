@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Test Perhitungan Tarif</title>
+</head>
+
+<body>
+  <h1>Test Perhitungan Tarif</h1>
+
+  <div>
+    <p><strong>Tarif:</strong></p>
+    <ul>
+      <li>Harian: Rp 25.000</li>
+      <li>Mingguan: Rp 150.000 (7 hari)</li>
+      <li>Bulanan: Rp 625.000 (30 hari)</li>
+    </ul>
+  </div>
+
+  <div id="results"></div>
+
+  <script>
+    const rates = {
+      daily: 25000,
+      weekly: 150000,
+      monthly: 625000
+    };
+
+    function calculateOptimalPrice(days) {
+      let totalPrice = 0;
+      let breakdown = '';
+
+      // Calculate optimal pricing combination
+      if (days >= 30 && rates.monthly > 0) {
+        // Calculate months + remaining days
+        const months = Math.floor(days / 30);
+        const remainingDays = days % 30;
+
+        totalPrice += months * rates.monthly;
+        breakdown = `${months} bulan (${months * rates.monthly})`;
+
+        // Calculate weekly option for remaining days if beneficial
+        if (remainingDays >= 7 && rates.weekly > 0) {
+          const weeks = Math.floor(remainingDays / 7);
+          const finalRemainingDays = remainingDays % 7;
+
+          if (weeks > 0) {
+            totalPrice += weeks * rates.weekly;
+            breakdown += ` + ${weeks} minggu (${weeks * rates.weekly})`;
+          }
+
+          if (finalRemainingDays > 0) {
+            totalPrice += finalRemainingDays * rates.daily;
+            breakdown += ` + ${finalRemainingDays} hari (${finalRemainingDays * rates.daily})`;
+          }
+        } else {
+          // Just add remaining days as daily rate
+          if (remainingDays > 0) {
+            totalPrice += remainingDays * rates.daily;
+            breakdown += ` + ${remainingDays} hari (${remainingDays * rates.daily})`;
+          }
+        }
+      } else if (days >= 7 && rates.weekly > 0) {
+        // Calculate weeks + remaining days
+        const weeks = Math.floor(days / 7);
+        const remainingDays = days % 7;
+
+        const weeklyPrice = weeks * rates.weekly;
+        const dailyPrice = remainingDays * rates.daily;
+        const totalPriceWithWeekly = weeklyPrice + dailyPrice;
+
+        // Compare with pure daily pricing
+        const pureDaily = days * rates.daily;
+
+        if (totalPriceWithWeekly <= pureDaily) {
+          totalPrice = totalPriceWithWeekly;
+          breakdown = `${weeks} minggu (${weeklyPrice})`;
+          if (remainingDays > 0) {
+            breakdown += ` + ${remainingDays} hari (${dailyPrice})`;
+          }
+        } else {
+          // Pure daily is better
+          totalPrice = pureDaily;
+          breakdown = `${days} hari (${pureDaily})`;
+        }
+      } else {
+        // Daily pricing only
+        totalPrice = days * rates.daily;
+        breakdown = `${days} hari (${totalPrice})`;
+      }
+
+      return { totalPrice, breakdown };
+    }
+
+    // Test cases
+    const testCases = [
+      { days: 1, desc: "1 hari" },
+      { days: 5, desc: "5 hari" },
+      { days: 7, desc: "7 hari (1 minggu)" },
+      { days: 10, desc: "10 hari" },
+      { days: 14, desc: "14 hari (2 minggu)" },
+      { days: 23, desc: "23 hari (3 minggu + 2 hari)" },
+      { days: 30, desc: "30 hari (1 bulan)" },
+      { days: 36, desc: "36 hari (1 bulan + 6 hari)" },
+      { days: 37, desc: "37 hari (1 bulan + 1 minggu)" },
+      { days: 44, desc: "44 hari (1 bulan + 2 minggu)" },
+      { days: 65, desc: "65 hari (2 bulan + 5 hari)" },
+      { days: 67, desc: "67 hari (2 bulan + 1 minggu)" }
+    ];
+
+    let resultsHTML = '<h2>Hasil Test Perhitungan:</h2>';
+    testCases.forEach(testCase => {
+      const result = calculateOptimalPrice(testCase.days);
+      resultsHTML += `
+                <div style="margin: 10px 0; padding: 10px; border: 1px solid #ccc;">
+                    <strong>${testCase.desc}:</strong><br>
+                    Breakdown: ${result.breakdown}<br>
+                    <strong>Total: Rp ${result.totalPrice.toLocaleString('id-ID')}</strong>
+                </div>
+            `;
+    });
+
+    document.getElementById('results').innerHTML = resultsHTML;
+  </script>
+</body>
+
+</html>

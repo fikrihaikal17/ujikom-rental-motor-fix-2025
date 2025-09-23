@@ -150,22 +150,22 @@
           <div class="px-4 py-5 sm:p-6">
             <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Informasi Penyewa</h3>
 
-            @if($penyewaan->renter)
+            @if($penyewaan->penyewa)
             <div class="space-y-3">
               <div>
                 <dt class="text-sm font-medium text-gray-500">Nama</dt>
-                <dd class="mt-1 text-sm text-gray-900">{{ $penyewaan->renter->name }}</dd>
+                <dd class="mt-1 text-sm text-gray-900">{{ $penyewaan->penyewa->nama }}</dd>
               </div>
 
               <div>
                 <dt class="text-sm font-medium text-gray-500">Email</dt>
-                <dd class="mt-1 text-sm text-gray-900">{{ $penyewaan->renter->email }}</dd>
+                <dd class="mt-1 text-sm text-gray-900">{{ $penyewaan->penyewa->email }}</dd>
               </div>
 
-              @if($penyewaan->renter->phone)
+              @if($penyewaan->penyewa->no_tlpn)
               <div>
                 <dt class="text-sm font-medium text-gray-500">Telepon</dt>
-                <dd class="mt-1 text-sm text-gray-900">{{ $penyewaan->renter->phone }}</dd>
+                <dd class="mt-1 text-sm text-gray-900">{{ $penyewaan->penyewa->no_tlpn }}</dd>
               </div>
               @endif
             </div>

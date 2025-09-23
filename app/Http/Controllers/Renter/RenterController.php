@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class RenterController extends Controller
 {
@@ -46,7 +47,7 @@ class RenterController extends Controller
       'completed_bookings' => Penyewaan::where('penyewa_id', $renter->id)
         ->where('status', BookingStatus::COMPLETED)->count(),
       'total_spent' => Penyewaan::where('penyewa_id', $renter->id)
-        ->where('status', BookingStatus::COMPLETED)
+        ->whereIn('status', [BookingStatus::CONFIRMED, BookingStatus::ACTIVE, BookingStatus::COMPLETED])
         ->sum('harga'),
     ];
 
@@ -60,6 +61,13 @@ class RenterController extends Controller
   {
     $query = Motor::where('status', MotorStatus::VERIFIED)
       ->where('ketersediaan', 'tersedia')
+      ->whereDoesntHave('penyewaans', function ($query) {
+        $query->whereIn('status', [BookingStatus::CONFIRMED, BookingStatus::ACTIVE])
+          ->where(function ($q) {
+            $q->where('tanggal_selesai', '>=', now())
+              ->orWhereNull('completed_at');
+          });
+      })
       ->with(['owner', 'tarifRental']);
 
     // Search functionality
@@ -106,8 +114,16 @@ class RenterController extends Controller
 
     $motors = $query->paginate(12)->withQueryString();
 
-    // Get unique brands for filter
+    // Get unique brands for filter (only from available motors)
     $brands = Motor::where('status', MotorStatus::VERIFIED)
+      ->where('ketersediaan', 'tersedia')
+      ->whereDoesntHave('penyewaans', function ($query) {
+        $query->whereIn('status', [BookingStatus::CONFIRMED, BookingStatus::ACTIVE])
+          ->where(function ($q) {
+            $q->where('tanggal_selesai', '>=', now())
+              ->orWhereNull('completed_at');
+          });
+      })
       ->distinct()
       ->pluck('merk')
       ->sort();
@@ -126,6 +142,20 @@ class RenterController extends Controller
         ->with('error', 'Motor tidak tersedia untuk disewa.');
     }
 
+    // Check if motor is currently being rented
+    $hasActiveBooking = $motor->penyewaans()
+      ->whereIn('status', [BookingStatus::CONFIRMED, BookingStatus::ACTIVE])
+      ->where(function ($query) {
+        $query->where('tanggal_selesai', '>=', now())
+          ->orWhereNull('completed_at');
+      })
+      ->exists();
+
+    if ($hasActiveBooking) {
+      return redirect()->route('renter.motors.index')
+        ->with('error', 'Motor sedang disewa oleh penyewa lain.');
+    }
+
     $motor->load(['owner', 'tarifRental']);
 
     return view('renter.motors.show', compact('motor'));
@@ -140,6 +170,20 @@ class RenterController extends Controller
     if ($motor->status !== MotorStatus::VERIFIED || $motor->ketersediaan !== 'tersedia') {
       return redirect()->route('renter.motors.index')
         ->with('error', 'Motor tidak tersedia untuk disewa.');
+    }
+
+    // Check if motor is currently being rented
+    $hasActiveBooking = $motor->penyewaans()
+      ->whereIn('status', [BookingStatus::CONFIRMED, BookingStatus::ACTIVE])
+      ->where(function ($query) {
+        $query->where('tanggal_selesai', '>=', now())
+          ->orWhereNull('completed_at');
+      })
+      ->exists();
+
+    if ($hasActiveBooking) {
+      return redirect()->route('renter.motors.index')
+        ->with('error', 'Motor sedang disewa oleh penyewa lain.');
     }
 
     $motor->load(['owner', 'tarifRental']);
@@ -303,13 +347,70 @@ class RenterController extends Controller
   }
 
   /**
+   * Confirm motor return by renter
+   */
+  public function confirmReturn(Penyewaan $booking)
+  {
+    // Check if booking belongs to current user
+    if ($booking->penyewa_id !== Auth::id()) {
+      abort(403, 'Unauthorized access');
+    }
+
+    // Check if booking can be marked as returned
+    if ($booking->status !== BookingStatus::ACTIVE) {
+      return redirect()->back()
+        ->with('error', 'Motor tidak dapat dikembalikan pada status booking saat ini.');
+    }
+
+    // Check if rental period is over or close to ending (within 24 hours)
+    $now = Carbon::now();
+    $endDate = Carbon::parse($booking->tanggal_selesai);
+
+    if ($now->isBefore($endDate->subDay())) {
+      return redirect()->back()
+        ->with('error', 'Motor hanya dapat dikembalikan maksimal 24 jam sebelum tanggal selesai atau setelah periode rental berakhir.');
+    }
+
+    // Update booking status to completed and set completion timestamp
+    $booking->update([
+      'status' => BookingStatus::COMPLETED,
+      'completed_at' => $now,
+    ]);
+
+    // Update motor status back to available (only if no other active bookings)
+    $motor = $booking->motor;
+    $hasOtherActiveBookings = $motor->penyewaans()
+      ->where('id', '!=', $booking->id)
+      ->whereIn('status', ['confirmed', 'active'])
+      ->exists();
+
+    if (!$hasOtherActiveBookings) {
+      $motor->update([
+        'status' => MotorStatus::AVAILABLE,
+        'ketersediaan' => 'tersedia',
+      ]);
+    }
+
+    // Log the completion
+    Log::info('Booking completed by renter', [
+      'booking_id' => $booking->id,
+      'renter_id' => Auth::id(),
+      'motor_id' => $booking->motor_id,
+      'completed_at' => $now,
+    ]);
+
+    return redirect()->route('renter.bookings.show', $booking)
+      ->with('success', 'Motor berhasil dikembalikan! Terima kasih telah menggunakan layanan kami.');
+  }
+
+  /**
    * Show booking history
    */
   public function history(Request $request)
   {
     $query = Penyewaan::where('penyewa_id', Auth::id())
-      ->with(['motor', 'motor.owner', 'transaksi'])
-      ->whereIn('status', [BookingStatus::COMPLETED, BookingStatus::CANCELLED]);
+      ->with(['motor', 'motor.owner', 'transaksi']);
+    // Removed the status filter to show ALL bookings
 
     // Filter by year
     if ($request->filled('year')) {
@@ -330,8 +431,7 @@ class RenterController extends Controller
 
     // Statistics for history
     $totalBookings = Penyewaan::where('penyewa_id', Auth::id())
-      ->whereIn('status', [BookingStatus::COMPLETED, BookingStatus::CANCELLED])
-      ->count();
+      ->count(); // Show all bookings count
 
     $completedBookings = Penyewaan::where('penyewa_id', Auth::id())
       ->where('status', BookingStatus::COMPLETED)
@@ -359,9 +459,79 @@ class RenterController extends Controller
    */
   public function exportHistory(Request $request)
   {
-    // For now, return a simple success message
-    // This can be extended to generate actual PDF/Excel files
-    return redirect()->route('renter.history')
-      ->with('info', 'Fitur export PDF akan segera tersedia.');
+    $user = Auth::user();
+
+    // Build query similar to history method
+    $query = Penyewaan::where('penyewa_id', $user->id)
+      ->with(['motor', 'motor.owner', 'transaksi']);
+    // Removed status filter to include all bookings
+
+    // Apply filters
+    $filters = [
+      'year' => $request->filled('year') ? $request->year : null,
+      'month' => $request->filled('month') ? $request->month : null,
+      'status' => $request->filled('status') ? $request->status : null,
+    ];
+
+    if ($request->filled('year')) {
+      $query->whereYear('created_at', $request->year);
+    }
+
+    if ($request->filled('month')) {
+      $query->whereMonth('created_at', $request->month);
+    }
+
+    if ($request->filled('status')) {
+      $query->where('status', $request->status);
+    }
+
+    $history = $query->orderBy('created_at', 'desc')->get();
+
+    // Calculate statistics
+    $totalBookings = $history->count();
+    $completedBookings = $history->where('status', BookingStatus::COMPLETED)->count();
+    $cancelledBookings = $history->where('status', BookingStatus::CANCELLED)->count();
+    $totalSpent = $history->where('status', BookingStatus::COMPLETED)->sum('harga');
+
+    // Month names for display
+    $monthNames = [
+      1 => 'Januari',
+      2 => 'Februari',
+      3 => 'Maret',
+      4 => 'April',
+      5 => 'Mei',
+      6 => 'Juni',
+      7 => 'Juli',
+      8 => 'Agustus',
+      9 => 'September',
+      10 => 'Oktober',
+      11 => 'November',
+      12 => 'Desember'
+    ];
+
+    // Generate PDF
+    $pdf = Pdf::loadView('renter.history.pdf', compact(
+      'user',
+      'history',
+      'totalBookings',
+      'completedBookings',
+      'cancelledBookings',
+      'totalSpent',
+      'filters',
+      'monthNames'
+    ));
+
+    // Set paper and options
+    $pdf->setPaper('a4', 'landscape');
+    $pdf->setOptions([
+      'isHtml5ParserEnabled' => true,
+      'isPhpEnabled' => true,
+      'defaultFont' => 'Arial'
+    ]);
+
+    // Generate filename
+    $filename = 'riwayat-penyewaan-' . $user->name . '-' . date('Y-m-d-His') . '.pdf';
+
+    return $pdf->download($filename);
   }
 }

@@ -9,12 +9,31 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class UserController extends Controller
 {
-  public function index()
+  public function index(Request $request)
   {
-    $users = User::latest()->paginate(10);
+    $query = User::query();
+
+    // Apply search filter
+    if ($request->filled('search')) {
+      $search = $request->search;
+      $query->where(function ($q) use ($search) {
+        $q->where('nama', 'like', "%{$search}%")
+          ->orWhere('name', 'like', "%{$search}%")
+          ->orWhere('email', 'like', "%{$search}%");
+      });
+    }
+
+    // Apply role filter
+    if ($request->filled('role')) {
+      $query->where('role', $request->role);
+    }
+
+    $users = $query->latest()->paginate(10)->withQueryString();
+
     return view('admin.users.index', compact('users'));
   }
 
@@ -114,39 +133,47 @@ class UserController extends Controller
     return redirect()->route('admin.users.index')->with('success', 'Pengguna berhasil dihapus.');
   }
 
-  public function export()
+  public function exportPdf(Request $request)
   {
-    $filename = 'users_export_' . now()->format('Y-m-d_H-i-s') . '.csv';
+    // Build query with filters
+    $query = User::with(['motors', 'penyewaans']);
 
-    $headers = [
-      'Content-Type' => 'text/csv',
-      'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+    // Apply search filter
+    if ($request->filled('search')) {
+      $search = $request->search;
+      $query->where(function ($q) use ($search) {
+        $q->where('nama', 'like', "%{$search}%")
+          ->orWhere('name', 'like', "%{$search}%")
+          ->orWhere('email', 'like', "%{$search}%");
+      });
+    }
+
+    // Apply role filter
+    if ($request->filled('role')) {
+      $query->where('role', $request->role);
+    }
+
+    $users = $query->get();
+
+    // Add statistics
+    $stats = [
+      'total_users' => $users->count(),
+      'admin_count' => $users->where('role.value', 'admin')->count(),
+      'pemilik_count' => $users->where('role.value', 'pemilik')->count(),
+      'penyewa_count' => $users->where('role.value', 'penyewa')->count(),
     ];
 
-    $callback = function () {
-      $file = fopen('php://output', 'w');
+    // Add filter information
+    $filters = [
+      'search' => $request->search,
+      'role' => $request->role,
+      'applied' => $request->filled('search') || $request->filled('role')
+    ];
 
-      // Header CSV
-      fputcsv($file, ['ID', 'Nama', 'Email', 'Role', 'No. Telepon', 'Alamat', 'Tanggal Daftar', 'Status Verifikasi']);
+    $pdf = Pdf::loadView('admin.users.pdf', compact('users', 'stats', 'filters'));
+    $pdf->setPaper('a4', 'landscape');
 
-      // Data
-      $users = User::all();
-      foreach ($users as $user) {
-        fputcsv($file, [
-          $user->id,
-          $user->nama,
-          $user->email,
-          ucfirst($user->role->value),
-          $user->no_telp,
-          $user->alamat,
-          $user->created_at->format('Y-m-d H:i:s'),
-          $user->email_verified_at ? 'Terverifikasi' : 'Belum Verifikasi'
-        ]);
-      }
-
-      fclose($file);
-    };
-
-    return response()->stream($callback, 200, $headers);
+    $filename = 'users_export_' . now()->format('Y-m-d_H-i-s') . '.pdf';
+    return $pdf->download($filename);
   }
 }

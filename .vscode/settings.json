@@ -1,0 +1,80 @@
+{
+    "files.associations": {
+        "*.blade.php": "blade"
+    },
+    "emmet.includeLanguages": {
+        "blade": "html"
+    },
+    "blade.format.enable": true,
+    "php.validate.executablePath": "",
+    "php.executablePath": "",
+    "[blade]": {
+        "editor.autoClosingBrackets": "always",
+        "editor.formatOnSave": false,
+        "javascript.validate.enable": false,
+        "typescript.validate.enable": false,
+        "css.validate": false,
+        "html.validate.scripts": false,
+        "html.validate.styles": false
+    },
+    "javascript.validate.enable": false,
+    "typescript.validate.enable": false,
+    "css.validate": false,
+    "html.validate.scripts": false,
+    "html.validate.styles": false,
+    "eslint.validate": [
+        "javascript",
+        "javascriptreact",
+        "typescript",
+        "typescriptreact"
+    ],
+    "eslint.options": {
+        "extensions": [".js", ".jsx", ".ts", ".tsx"]
+    },
+    "javascript.preferences.includePackageJsonAutoImports": "off",
+    "typescript.preferences.includePackageJsonAutoImports": "off",
+    "html.customData": [],
+    "css.customData": [],
+    "json.schemas": [],
+    "editor.acceptSuggestionOnEnter": "off",
+    "workbench.settings.enableNaturalLanguageSearch": false,
+    "search.useIgnoreFiles": true,
+    "search.exclude": {
+        "**/node_modules": true,
+        "**/vendor": true,
+        "**/storage": true,
+        "**/bootstrap/cache": true
+    },
+    "files.exclude": {
+        "**/.git": true,
+        "**/.svn": true,
+        "**/.hg": true,
+        "**/CVS": true,
+        "**/.DS_Store": true,
+        "**/Thumbs.db": true,
+        "**/node_modules": true,
+        "**/vendor": true,
+        "**/storage/logs": true,
+        "**/storage/framework/cache": true,
+        "**/storage/framework/sessions": true,
+        "**/storage/framework/views": true,
+        "**/bootstrap/cache": true
+    },
+    "problems.showCurrentInStatus": false,
+    "problems.decorations.enabled": false,
+    "editor.semanticTokenColorCustomizations": {
+        "enabled": false
+    },
+    "editor.tokenColorCustomizations": {
+        "[*]": {
+            "textMateRules": [
+                {
+                    "scope": "invalid",
+                    "settings": {
+                        "foreground": "#ffffff00"
+                    }
+                }
+            ]
+        }
+    }
+}
