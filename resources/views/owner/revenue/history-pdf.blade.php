@@ -276,7 +276,7 @@
             <strong>{{ $revenue->penyewaan->motor->merk ?? 'N/A' }}</strong><br>
             <small>{{ $revenue->penyewaan->motor->no_plat ?? 'N/A' }}</small>
           </td>
-          <td>{{ $revenue->penyewaan->user->nama ?? 'N/A' }}</td>
+          <td>{{ $revenue->penyewaan->penyewa->nama ?? 'N/A' }}</td>
           <td class="text-right text-green">
             Rp {{ number_format($revenue->bagi_hasil_pemilik, 0, ',', '.') }}
           </td>

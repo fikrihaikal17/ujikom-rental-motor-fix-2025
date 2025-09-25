@@ -24,7 +24,7 @@
     <div class="lg:col-span-1">
       <div class="bg-white rounded-lg shadow-sm overflow-hidden">
         <div class="aspect-w-16 aspect-h-9">
-          <img src="{{ $motor->photo ? asset('storage/' . $motor->photo) : asset('images/motor-placeholder.png') }}"
+          <img src="{{ $motor->photo ? asset($motor->photo) : asset('images/motor-placeholder.png') }}"
             alt="{{ $motor->merk }} {{ $motor->model }}"
             class="w-full h-48 object-cover">
         </div>

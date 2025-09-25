@@ -60,6 +60,14 @@ class Motor extends Model
   }
 
   /**
+   * Alias for owner relationship (English version)
+   */
+  public function user(): BelongsTo
+  {
+    return $this->belongsTo(User::class, 'pemilik_id');
+  }
+
+  /**
    * Get the admin who verified this motor
    */
   public function verifiedBy(): BelongsTo

@@ -86,7 +86,7 @@
                 <div class="ml-5 w-0 flex-1">
                   <dl>
                     <dt class="text-sm font-medium text-gray-500 truncate">Motor Terdaftar</dt>
-                    <dd class="text-lg font-medium text-gray-900">0</dd>
+                    <dd class="text-lg font-medium text-gray-900">{{ $totalMotors }}</dd>
                   </dl>
                 </div>
               </div>
@@ -107,7 +107,7 @@
                 <div class="ml-5 w-0 flex-1">
                   <dl>
                     <dt class="text-sm font-medium text-gray-500 truncate">Sedang Disewa</dt>
-                    <dd class="text-lg font-medium text-gray-900">0</dd>
+                    <dd class="text-lg font-medium text-gray-900">{{ $activeMotoRentals }}</dd>
                   </dl>
                 </div>
               </div>
@@ -129,7 +129,7 @@
                 <div class="ml-5 w-0 flex-1">
                   <dl>
                     <dt class="text-sm font-medium text-gray-500 truncate">Pendapatan Bulan Ini</dt>
-                    <dd class="text-lg font-medium text-gray-900">Rp 0</dd>
+                    <dd class="text-lg font-medium text-gray-900">Rp {{ number_format($monthlyRevenue, 0, ',', '.') }}</dd>
                   </dl>
                 </div>
               </div>
@@ -149,8 +149,8 @@
                 </div>
                 <div class="ml-5 w-0 flex-1">
                   <dl>
-                    <dt class="text-sm font-medium text-gray-500 truncate">Total Pendapatan</dt>
-                    <dd class="text-lg font-medium text-gray-900">Rp 0</dd>
+                    <dt class="text-sm font-medium text-gray-900 truncate">Total Pendapatan</dt>
+                    <dd class="text-lg font-medium text-gray-900">Rp {{ number_format($totalRevenue, 0, ',', '.') }}</dd>
                   </dl>
                 </div>
               </div>
@@ -209,6 +209,90 @@
                   </div>
                 </div>
               </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Rentals -->
+        @if($recentRentals->count() > 0)
+        <div class="bg-white shadow overflow-hidden sm:rounded-md mt-6">
+          <div class="px-4 py-5 sm:px-6">
+            <h3 class="text-lg leading-6 font-medium text-gray-900">Penyewaan Terbaru</h3>
+            <p class="mt-1 max-w-2xl text-sm text-gray-500">5 penyewaan terbaru dari motor Anda</p>
+          </div>
+          <div class="border-t border-gray-200">
+            <ul class="divide-y divide-gray-200">
+              @foreach($recentRentals as $rental)
+              <li class="px-4 py-4 sm:px-6">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                      <div class="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center">
+                        <svg class="w-5 h-5 text-primary-600" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z"></path>
+                          <path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7a1 1 0 00-1 1v6.05A2.5 2.5 0 0115.95 16H17a1 1 0 001-1V8a1 1 0 00-1-1h-3z"></path>
+                        </svg>
+                      </div>
+                    </div>
+                    <div class="ml-4">
+                      <div class="text-sm font-medium text-gray-900">
+                        {{ $rental->motor->merk }} {{ $rental->motor->model }}
+                      </div>
+                      <div class="text-sm text-gray-500">
+                        Disewa oleh {{ $rental->penyewa->nama }}
+                      </div>
+                    </div>
+                  </div>
+                  <div class="flex items-center space-x-4">
+                    <div class="text-sm text-gray-900">
+                      <span class="px-2 py-1 text-xs font-medium rounded-full 
+                        @if($rental->status->value === 'active') bg-green-100 text-green-800
+                        @elseif($rental->status->value === 'completed') bg-blue-100 text-blue-800
+                        @elseif($rental->status->value === 'cancelled') bg-red-100 text-red-800
+                        @else bg-yellow-100 text-yellow-800
+                        @endif">
+                        {{ ucfirst($rental->status->value) }}
+                      </span>
+                    </div>
+                    <div class="text-sm text-gray-500">
+                      {{ $rental->tanggal_mulai->format('d M Y') }}
+                    </div>
+                    <div class="text-sm font-medium text-gray-900">
+                      Rp {{ number_format($rental->harga, 0, ',', '.') }}
+                    </div>
+                  </div>
+                </div>
+              </li>
+              @endforeach
+            </ul>
+          </div>
+        </div>
+        @endif
+
+        <!-- Monthly Revenue Chart -->
+        <div class="bg-white shadow overflow-hidden sm:rounded-md mt-6">
+          <div class="px-4 py-5 sm:px-6">
+            <h3 class="text-lg leading-6 font-medium text-gray-900">Grafik Pendapatan 6 Bulan Terakhir</h3>
+            <p class="mt-1 max-w-2xl text-sm text-gray-500">Pendapatan bulanan dari bagi hasil penyewaan</p>
+          </div>
+          <div class="border-t border-gray-200 p-6">
+            <div class="grid grid-cols-6 gap-4">
+              @php $maxRevenue = collect($monthlyRevenueChart)->max('revenue') ?: 1; @endphp
+              @foreach($monthlyRevenueChart as $data)
+              <div class="text-center">
+                <div class="mb-2">
+                  <div class="w-full bg-gray-200 rounded-full h-32 flex items-end">
+                    @php $percentage = $maxRevenue > 0 ? ($data['revenue'] / $maxRevenue) * 100 : 0; @endphp
+                    <div class="bg-primary-500 rounded-full w-full transition-all duration-500" 
+                         style="height: {{ max(5, $percentage) }}%"></div>
+                  </div>
+                </div>
+                <div class="text-xs text-gray-600 font-medium">{{ $data['month'] }}</div>
+                <div class="text-xs text-gray-500 mt-1">
+                  Rp {{ number_format($data['revenue'], 0, ',', '.') }}
+                </div>
+              </div>
+              @endforeach
             </div>
           </div>
         </div>

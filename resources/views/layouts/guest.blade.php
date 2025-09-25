@@ -150,9 +150,9 @@
                 @endif
                 <p>&copy; 2025 RideNow. Semua hak cipta dilindungi.</p>
                 <div class="mt-1 space-x-3">
-                  <a href="#" class="text-gray-400 hover:text-gray-600">Bantuan</a>
-                  <a href="#" class="text-gray-400 hover:text-gray-600">Syarat & Ketentuan</a>
-                  <a href="#" class="text-gray-400 hover:text-gray-600">Privasi</a>
+                  <a href="{{ route('help') }}" class="text-gray-400 hover:text-gray-600">Bantuan</a>
+                  <a href="{{ route('terms') }}" class="text-gray-400 hover:text-gray-600">Syarat & Ketentuan</a>
+                  <a href="{{ route('privacy') }}" class="text-gray-400 hover:text-gray-600">Privasi</a>
                 </div>
               </div>
             </div>

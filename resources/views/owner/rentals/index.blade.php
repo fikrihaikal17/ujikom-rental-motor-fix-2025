@@ -109,7 +109,7 @@
   <!-- Pagination -->
   @if($rentals->hasPages())
   <div class="mt-6">
-    {{ $rentals->links() }}
+    {{ $rentals->links('custom.advanced-pagination') }}
   </div>
   @endif
 </div>

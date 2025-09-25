@@ -63,6 +63,19 @@ Route::middleware('guest')->group(function () {
     Route::post('/register', [RegisterController::class, 'register']);
 });
 
+// Public pages (accessible to everyone)
+Route::get('/help', function () {
+    return view('pages.help');
+})->name('help');
+
+Route::get('/terms', function () {
+    return view('pages.terms');
+})->name('terms');
+
+Route::get('/privacy', function () {
+    return view('pages.privacy');
+})->name('privacy');
+
 // Logout route (for authenticated users)
 Route::post('/logout', [LoginController::class, 'logout'])
     ->middleware('auth')
@@ -170,6 +183,7 @@ Route::middleware(['auth', 'owner'])->prefix('owner')->name('owner.')->group(fun
 
     // Motor Management
     Route::get('/motors', [OwnerController::class, 'motors'])->name('motors.index');
+    Route::get('/motors/print-pdf', [OwnerController::class, 'printMotorsPdf'])->name('motors.print-pdf');
     Route::get('/motors/create', [OwnerController::class, 'createMotor'])->name('motors.create');
     Route::post('/motors', [OwnerController::class, 'storeMotor'])->name('motors.store');
     Route::get('/motors/{motor}', [OwnerController::class, 'showMotor'])->name('motors.show');
@@ -221,6 +235,12 @@ Route::middleware(['auth', 'renter'])->prefix('renter')->name('renter.')->group(
     // History and Reports
     Route::get('/history', [RenterController::class, 'history'])->name('history');
     Route::get('/history/export', [RenterController::class, 'exportHistory'])->name('history.export');
+
+    // Profile and Settings
+    Route::get('/profile', [RenterController::class, 'profile'])->name('profile');
+    Route::put('/profile', [RenterController::class, 'updateProfile'])->name('profile.update');
+    Route::get('/settings', [RenterController::class, 'settings'])->name('settings');
+    Route::put('/settings', [RenterController::class, 'updateSettings'])->name('settings.update');
 });
 
 // API Routes for AJAX calls

@@ -31,105 +31,191 @@
 </div>
 
 <!-- Summary Stats -->
-<div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-8">
-  <div class="bg-white overflow-hidden shadow rounded-lg">
-    <div class="p-5">
-      <div class="flex items-center">
-        <div class="flex-shrink-0">
-          <svg class="h-6 w-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4 mb-8">
+  <!-- Total Bookings Card -->
+  <div class="relative bg-gradient-to-br from-blue-500 to-blue-600 overflow-hidden shadow-lg rounded-xl transform hover:scale-105 transition-all duration-300">
+    <div class="p-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-blue-100 text-sm font-medium">Total Bookings</p>
+          <p class="text-white text-3xl font-bold">{{ number_format($totalBookings) }}</p>
+          @if($totalBookings > 0)
+          <p class="text-blue-200 text-xs mt-1">
+            <svg class="inline w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M3.293 9.707a1 1 0 010-1.414l6-6a1 1 0 011.414 0l6 6a1 1 0 01-1.414 1.414L10 4.414 4.707 9.707a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+            </svg>
+            Active Data
+          </p>
+          @endif
+        </div>
+        <div class="bg-white/20 p-3 rounded-full">
+          <svg class="h-8 w-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
           </svg>
         </div>
-        <div class="ml-5 w-0 flex-1">
-          <dl>
-            <dt class="text-sm font-medium text-gray-500 truncate">Total Booking</dt>
-            <dd class="text-lg font-medium text-gray-900 flex items-center">
-              <span>{{ $totalBookings }}</span>
-              @if($totalBookings > 0)
-              <span class="ml-2 flex items-center text-sm text-green-600">
-                <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
-                </svg>
-                Data Real
-              </span>
-              @endif
-            </dd>
-          </dl>
-        </div>
       </div>
     </div>
+    <div class="absolute bottom-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mb-12"></div>
   </div>
 
-  <div class="bg-white overflow-hidden shadow rounded-lg">
-    <div class="p-5">
-      <div class="flex items-center">
-        <div class="flex-shrink-0">
-          <svg class="h-6 w-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+  <!-- Total Revenue Card -->
+  <div class="relative bg-gradient-to-br from-green-500 to-green-600 overflow-hidden shadow-lg rounded-xl transform hover:scale-105 transition-all duration-300">
+    <div class="p-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-green-100 text-sm font-medium">Total Revenue</p>
+          <p class="text-white text-2xl font-bold">Rp {{ number_format($totalRevenue / 1000000, 1) }}M</p>
+          <p class="text-green-200 text-xs">Rp {{ number_format($totalRevenue, 0, ',', '.') }}</p>
+          @if($totalRevenue > 0)
+          <p class="text-green-200 text-xs mt-1">
+            <svg class="inline w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M3.293 9.707a1 1 0 010-1.414l6-6a1 1 0 011.414 0l6 6a1 1 0 01-1.414 1.414L10 4.414 4.707 9.707a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+            </svg>
+            Real Revenue
+          </p>
+          @endif
+        </div>
+        <div class="bg-white/20 p-3 rounded-full">
+          <svg class="h-8 w-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
           </svg>
         </div>
-        <div class="ml-5 w-0 flex-1">
-          <dl>
-            <dt class="text-sm font-medium text-gray-500 truncate">Total Revenue</dt>
-            <dd class="text-lg font-medium text-gray-900 flex items-center">
-              <span>Rp {{ number_format($totalRevenue, 0, ',', '.') }}</span>
-              @if($totalRevenue > 0)
-              <span class="ml-2 flex items-center text-sm text-green-600">
-                <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
-                </svg>
-                Data Real
-              </span>
-              @endif
-            </dd>
-          </dl>
-        </div>
       </div>
     </div>
+    <div class="absolute bottom-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mb-12"></div>
   </div>
 
-  <div class="bg-white overflow-hidden shadow rounded-lg">
-    <div class="p-5">
-      <div class="flex items-center">
-        <div class="flex-shrink-0">
-          <svg class="h-6 w-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+  <!-- Active Motors Card -->
+  <div class="relative bg-gradient-to-br from-purple-500 to-purple-600 overflow-hidden shadow-lg rounded-xl transform hover:scale-105 transition-all duration-300">
+    <div class="p-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-purple-100 text-sm font-medium">Active Motors</p>
+          <p class="text-white text-3xl font-bold">{{ number_format($totalMotors) }}</p>
+          @if($totalMotors > 0)
+          <p class="text-purple-200 text-xs mt-1">
+            <svg class="inline w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M3.293 9.707a1 1 0 010-1.414l6-6a1 1 0 011.414 0l6 6a1 1 0 01-1.414 1.414L10 4.414 4.707 9.707a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+            </svg>
+            Registered Motors
+          </p>
+          @endif
+        </div>
+        <div class="bg-white/20 p-3 rounded-full">
+          <svg class="h-8 w-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
           </svg>
         </div>
-        <div class="ml-5 w-0 flex-1">
-          <dl>
-            <dt class="text-sm font-medium text-gray-500 truncate">Motor Aktif</dt>
-            <dd class="text-lg font-medium text-gray-900 flex items-center">
-              <span>{{ $totalMotors }}</span>
-              @if($totalMotors > 0)
-              <span class="ml-2 flex items-center text-sm text-green-600">
-                <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
-                </svg>
-                Data Real
-              </span>
-              @endif
-            </dd>
-          </dl>
+      </div>
+    </div>
+    <div class="absolute bottom-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mb-12"></div>
+  </div>
+
+  <!-- Total Users Card -->
+  <div class="relative bg-gradient-to-br from-orange-500 to-orange-600 overflow-hidden shadow-lg rounded-xl transform hover:scale-105 transition-all duration-300">
+    <div class="p-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-orange-100 text-sm font-medium">Total Users</p>
+          <p class="text-white text-3xl font-bold">{{ number_format($totalUsers) }}</p>
+          <p class="text-orange-200 text-xs">Registered Members</p>
         </div>
+        <div class="bg-white/20 p-3 rounded-full">
+          <svg class="h-8 w-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+          </svg>
+        </div>
+      </div>
+    </div>
+    <div class="absolute bottom-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mb-12"></div>
+  </div>
+</div>
+
+<!-- Additional Quick Stats Row -->
+<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5 mb-8">
+  <!-- Active Bookings -->
+  <div class="bg-white rounded-lg shadow-md p-4 border-l-4 border-blue-500">
+    <div class="flex items-center">
+      <div class="flex-shrink-0">
+        <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+          <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+        </div>
+      </div>
+      <div class="ml-3">
+        <p class="text-sm font-medium text-gray-500">Active</p>
+        <p class="text-lg font-semibold text-gray-900">{{ $activeBookings ?? 0 }}</p>
       </div>
     </div>
   </div>
 
-  <div class="bg-white overflow-hidden shadow rounded-lg">
-    <div class="p-5">
-      <div class="flex items-center">
-        <div class="flex-shrink-0">
-          <svg class="h-6 w-6 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+  <!-- Completed Bookings -->
+  <div class="bg-white rounded-lg shadow-md p-4 border-l-4 border-green-500">
+    <div class="flex items-center">
+      <div class="flex-shrink-0">
+        <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+          <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
           </svg>
         </div>
-        <div class="ml-5 w-0 flex-1">
-          <dl>
-            <dt class="text-sm font-medium text-gray-500 truncate">Total Users</dt>
-            <dd class="text-lg font-medium text-gray-900">{{ $totalUsers }} pengguna</dd>
-          </dl>
+      </div>
+      <div class="ml-3">
+        <p class="text-sm font-medium text-gray-500">Completed</p>
+        <p class="text-lg font-semibold text-gray-900">{{ $completedBookings ?? 0 }}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cancelled Bookings -->
+  <div class="bg-white rounded-lg shadow-md p-4 border-l-4 border-red-500">
+    <div class="flex items-center">
+      <div class="flex-shrink-0">
+        <div class="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
+          <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
         </div>
+      </div>
+      <div class="ml-3">
+        <p class="text-sm font-medium text-gray-500">Cancelled</p>
+        <p class="text-lg font-semibold text-gray-900">{{ $cancelledBookings ?? 0 }}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pending Bookings -->
+  <div class="bg-white rounded-lg shadow-md p-4 border-l-4 border-yellow-500">
+    <div class="flex items-center">
+      <div class="flex-shrink-0">
+        <div class="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
+          <svg class="w-4 h-4 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+        </div>
+      </div>
+      <div class="ml-3">
+        <p class="text-sm font-medium text-gray-500">Pending</p>
+        <p class="text-lg font-semibold text-gray-900">{{ $pendingBookings ?? 0 }}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Conversion Rate -->
+  <div class="bg-white rounded-lg shadow-md p-4 border-l-4 border-indigo-500">
+    <div class="flex items-center">
+      <div class="flex-shrink-0">
+        <div class="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center">
+          <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+          </svg>
+        </div>
+      </div>
+      <div class="ml-3">
+        <p class="text-sm font-medium text-gray-500">Success Rate</p>
+        <p class="text-lg font-semibold text-gray-900">
+          {{ $totalBookings > 0 ? number_format((($completedBookings ?? 0) / $totalBookings) * 100, 1) : 0 }}%
+        </p>
       </div>
     </div>
   </div>

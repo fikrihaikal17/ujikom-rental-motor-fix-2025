@@ -6,19 +6,25 @@ use App\Http\Controllers\Controller;
 use App\Models\Motor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Barryvdh\DomPDF\Facade\Pdf;
+use Barryvdh\DomPDF\Facade\Pdf as PDF;
 
 class MotorVerificationController extends Controller
 {
   public function index(Request $request)
   {
     // Build base query
-    $query = Motor::with(['owner', 'tarifRental']);
+    $query = Motor::with(['owner', 'tarifRental', 'verifiedBy']);
 
     // Apply status filter if provided
     if ($request->filled('status')) {
       if ($request->status === 'verified') {
-        $query->where('status', \App\Enums\MotorStatus::VERIFIED);
+        // Include all verified motor statuses (VERIFIED, AVAILABLE, RENTED, MAINTENANCE)
+        $query->whereIn('status', [
+          \App\Enums\MotorStatus::VERIFIED,
+          \App\Enums\MotorStatus::AVAILABLE,
+          \App\Enums\MotorStatus::RENTED,
+          \App\Enums\MotorStatus::MAINTENANCE
+        ]);
       } elseif ($request->status === 'pending') {
         $query->where('status', \App\Enums\MotorStatus::PENDING)
           ->whereNull('admin_notes');
@@ -54,9 +60,14 @@ class MotorVerificationController extends Controller
       ->latest()
       ->paginate(10, ['*'], 'pending');
 
-    // Get all motors for overview
-    $verifiedMotors = Motor::where('status', \App\Enums\MotorStatus::VERIFIED)
-      ->with(['owner', 'tarifRental'])
+    // Get all motors for overview - include all verified statuses
+    $verifiedMotors = Motor::whereIn('status', [
+      \App\Enums\MotorStatus::VERIFIED,
+      \App\Enums\MotorStatus::AVAILABLE,
+      \App\Enums\MotorStatus::RENTED,
+      \App\Enums\MotorStatus::MAINTENANCE
+    ])
+      ->with(['owner', 'tarifRental', 'verifiedBy'])
       ->latest()
       ->paginate(10, ['*'], 'verified');
 
@@ -66,11 +77,16 @@ class MotorVerificationController extends Controller
       ->latest()
       ->paginate(10, ['*'], 'rejected');
 
-    // Statistics
+    // Statistics - count all verified statuses
     $stats = [
       'total' => Motor::count(),
       'pending' => Motor::where('status', \App\Enums\MotorStatus::PENDING)->whereNull('admin_notes')->count(),
-      'verified' => Motor::where('status', \App\Enums\MotorStatus::VERIFIED)->count(),
+      'verified' => Motor::whereIn('status', [
+        \App\Enums\MotorStatus::VERIFIED,
+        \App\Enums\MotorStatus::AVAILABLE,
+        \App\Enums\MotorStatus::RENTED,
+        \App\Enums\MotorStatus::MAINTENANCE
+      ])->count(),
       'rejected' => Motor::where('status', \App\Enums\MotorStatus::PENDING)->whereNotNull('admin_notes')->count(),
     ];
 
@@ -195,7 +211,7 @@ class MotorVerificationController extends Controller
     ];
 
     // Generate PDF
-    $pdf = Pdf::loadView('admin.motors.export-pdf', compact('motors', 'stats', 'filterInfo'))
+    $pdf = PDF::loadView('admin.motors.export-pdf', compact('motors', 'stats', 'filterInfo'))
       ->setPaper('a4', 'landscape');
 
     // Generate filename based on filter

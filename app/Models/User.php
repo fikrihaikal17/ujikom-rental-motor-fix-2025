@@ -139,6 +139,14 @@ class User extends Authenticatable
     }
 
     /**
+     * Accessor for name field (alias for nama)
+     */
+    public function getNameAttribute(): string
+    {
+        return $this->nama;
+    }
+
+    /**
      * Get user's role display name
      */
     public function getRoleDisplayNameAttribute(): string

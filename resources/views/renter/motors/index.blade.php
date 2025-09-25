@@ -102,8 +102,8 @@
       <!-- Motor Image -->
       <div class="relative">
         @if($motor->photo)
-        <img src="{{ asset('storage/' . $motor->photo) }}"
-          alt="{{ $motor->nama_motor }}"
+        <img src="{{ asset($motor->photo) }}"
+          alt="{{ $motor->merk }} {{ $motor->model }}"
           class="w-full h-48 object-cover">
         @else
         <div class="w-full h-48 bg-gray-200 flex items-center justify-center">
@@ -133,25 +133,29 @@
 
       <!-- Motor Info -->
       <div class="p-4">
-        <div class="flex items-center justify-between mb-2">
-          <h4 class="text-lg font-semibold text-gray-900 truncate">{{ $motor->merk }}</h4>
-          <span class="text-sm text-gray-500">{{ $motor->no_plat }}</span>
+        <div class="mb-2">
+          <h4 class="text-lg font-semibold text-gray-900 mb-1">{{ $motor->merk }}</h4>
+          <p class="text-gray-600 mb-1">{{ $motor->merk }} {{ $motor->model }}</p>
         </div>
 
-        <p class="text-gray-600 mb-2">{{ $motor->nama_motor }}</p>
-        <p class="text-sm text-gray-500 mb-3">{{ $motor->model }} • {{ $motor->tahun }}</p>
+        <div class="flex items-center justify-between mb-3">
+          <p class="text-sm text-gray-500">{{ $motor->model }} • {{ $motor->tahun }}</p>
+          <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+            {{ $motor->no_plat }}
+          </span>
+        </div>
 
         <!-- Pricing -->
         @if($motor->tarifRental)
         <div class="space-y-1 mb-4">
           <div class="flex justify-between items-center">
             <span class="text-sm text-gray-600">Harian:</span>
-            <span class="font-semibold text-gray-900">Rp {{ number_format($motor->tarifRental->harga_harian, 0, ',', '.') }}</span>
+            <span class="font-semibold text-gray-900">Rp {{ number_format($motor->tarifRental->tarif_harian, 0, ',', '.') }}</span>
           </div>
-          @if($motor->tarifRental->harga_mingguan)
+          @if($motor->tarifRental->tarif_mingguan)
           <div class="flex justify-between items-center">
             <span class="text-sm text-gray-600">Mingguan:</span>
-            <span class="font-semibold text-gray-900">Rp {{ number_format($motor->tarifRental->harga_mingguan, 0, ',', '.') }}</span>
+            <span class="font-semibold text-gray-900">Rp {{ number_format($motor->tarifRental->tarif_mingguan, 0, ',', '.') }}</span>
           </div>
           @endif
         </div>
@@ -185,8 +189,57 @@
 
   <!-- Pagination -->
   @if($motors->hasPages())
-  <div class="flex justify-center">
-    {{ $motors->links() }}
+  <div class="flex justify-center mt-8">
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 px-6 py-4">
+      <nav class="flex items-center justify-between">
+        <div class="flex items-center text-sm text-gray-700">
+          <span>Menampilkan</span>
+          <span class="font-medium mx-1">{{ $motors->firstItem() }}</span>
+          <span>sampai</span>
+          <span class="font-medium mx-1">{{ $motors->lastItem() }}</span>
+          <span>dari</span>
+          <span class="font-medium mx-1">{{ $motors->total() }}</span>
+          <span>hasil</span>
+        </div>
+        
+        <div class="flex items-center space-x-1">
+          {{-- Previous Page Link --}}
+          @if ($motors->onFirstPage())
+            <span class="px-3 py-2 text-sm text-gray-400 bg-gray-100 border border-gray-200 rounded-md cursor-not-allowed">
+              ←
+            </span>
+          @else
+            <a href="{{ $motors->previousPageUrl() }}" class="px-3 py-2 text-sm text-gray-600 bg-white border border-gray-200 rounded-md hover:bg-gray-50 hover:text-gray-800 transition-colors">
+              ←
+            </a>
+          @endif
+
+          {{-- Pagination Elements --}}
+          @foreach ($motors->getUrlRange(1, $motors->lastPage()) as $page => $url)
+            @if ($page == $motors->currentPage())
+              <span class="px-3 py-2 text-sm font-medium text-white bg-blue-600 border border-blue-600 rounded-md">
+                {{ $page }}
+              </span>
+            @else
+              <a href="{{ $url }}" class="px-3 py-2 text-sm text-gray-600 bg-white border border-gray-200 rounded-md hover:bg-gray-50 hover:text-gray-800 transition-colors">
+                {{ $page }}
+              </a>
+            @endif
+          @endforeach
+
+          {{-- Next Page Link --}}
+          @if ($motors->hasMorePages())
+            <a href="{{ $motors->nextPageUrl() }}" class="px-3 py-2 text-sm text-gray-600 bg-white border border-gray-200 rounded-md hover:bg-gray-50 hover:text-gray-800 transition-colors">
+              →
+            </a>
+          @else
+            <span class="px-3 py-2 text-sm text-gray-400 bg-gray-100 border border-gray-200 rounded-md cursor-not-allowed">
+              →
+            </span>
+          @endif
+        </div>
+      </nav>
+    </div>
   </div>
   @endif
 
@@ -208,6 +261,8 @@
   </div>
   @endif
 </div>
+
+
 
 @push('scripts')
 <script>

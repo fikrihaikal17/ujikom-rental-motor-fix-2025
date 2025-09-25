@@ -14,7 +14,7 @@ class BagiHasilController extends Controller
 {
   public function index(Request $request)
   {
-    $query = BagiHasil::with(['penyewaan.motor.user', 'penyewaan.user']);
+    $query = BagiHasil::with(['penyewaan.motor.owner', 'penyewaan.penyewa']);
 
     // Filter by status (based on settled_at column)
     if ($request->filled('status')) {
@@ -37,8 +37,8 @@ class BagiHasilController extends Controller
     if ($request->filled('search')) {
       $search = $request->search;
       $query->where(function ($q) use ($search) {
-        $q->whereHas('penyewaan.motor.user', function ($sq) use ($search) {
-          $sq->where('name', 'like', "%{$search}%");
+        $q->whereHas('penyewaan.motor.owner', function ($sq) use ($search) {
+          $sq->where('nama', 'like', "%{$search}%");
         })
           ->orWhereHas('penyewaan.motor', function ($sq) use ($search) {
             $sq->where('nama_motor', 'like', "%{$search}%");
@@ -56,8 +56,32 @@ class BagiHasilController extends Controller
     $pendingSettlement = BagiHasil::whereNull('settled_at')->count();
     $settledCount = BagiHasil::whereNotNull('settled_at')->count();
 
+    // Prepare stats array for view
+    $stats = [
+      'total_transactions' => $totalBagiHasil,
+      'total_revenue' => $totalPendapatan,
+      'admin_share' => $totalBagiHasilAdmin,
+      'owner_share' => $totalBagiHasilPemilik,
+      'pending_settlement' => $pendingSettlement,
+      'settled_count' => $settledCount
+    ];
+
+    // Prepare summary array for bottom section
+    $summary = [
+      'this_month' => BagiHasil::whereMonth('created_at', now()->month)
+        ->whereYear('created_at', now()->year)
+        ->sum('total_pendapatan'),
+      'this_year' => BagiHasil::whereYear('created_at', now()->year)
+        ->sum('total_pendapatan'),
+      'pending' => BagiHasil::whereNull('settled_at')
+        ->sum('total_pendapatan'),
+      'all_time' => $totalPendapatan
+    ];
+
     return view('admin.bagi-hasil.index', compact(
       'bagiHasils',
+      'stats',
+      'summary',
       'totalBagiHasil',
       'totalPendapatan',
       'totalBagiHasilPemilik',
@@ -69,7 +93,7 @@ class BagiHasilController extends Controller
 
   public function show(BagiHasil $bagiHasil)
   {
-    $bagiHasil->load(['penyewaan.motor.user', 'penyewaan.user', 'penyewaan.payments']);
+    $bagiHasil->load(['penyewaan.motor.owner', 'penyewaan.penyewa', 'penyewaan.payments']);
 
     return view('admin.bagi-hasil.show', compact('bagiHasil'));
   }
@@ -89,7 +113,7 @@ class BagiHasilController extends Controller
 
   public function exportPdf()
   {
-    $bagiHasils = BagiHasil::with(['penyewaan.motor.user', 'penyewaan.motor'])->get();
+    $bagiHasils = BagiHasil::with(['penyewaan.motor.owner', 'penyewaan.motor'])->get();
 
     $data = [
       'bagiHasils' => $bagiHasils,

@@ -178,6 +178,33 @@ php artisan migrate
 php artisan db:seed
 ```
 
+### 2.1. Custom Console Commands
+
+**Setup Rental Data Command**
+
+```bash
+# Setup complete rental system with realistic data
+php artisan setup:rental-data
+
+# This command will:
+# - Create admin, owners, and renters
+# - Generate 25 Gmail-based renter accounts
+# - Create motors with tariff configurations
+# - Generate 163 realistic rental transactions
+# - Setup revenue sharing data
+```
+
+**Available Custom Commands:**
+
+```bash
+# List all available commands
+php artisan list
+
+# Custom commands available:
+php artisan setup:rental-data    # Complete rental system setup
+php artisan app:setup-rental-data # Alternative command name
+```
+
 ### 3. Development Server
 
 ```bash

@@ -559,8 +559,37 @@ database/seeders/
 ├── UserSeeder.php
 ├── MotorSeeder.php
 ├── TarifRentalSeeder.php
-└── PenyewaanSeeder.php (untuk testing data)
+├── CompleteUserSeeder.php (complete user data)
+├── GmailRenterSeeder.php (25 Gmail renters)
+├── GmailRentalSeeder.php (rentals with Gmail accounts)
+├── MotorBulkSeeder.php (bulk motor data)
+├── OwnerMotorSeeder.php (owner-motor relationships)
+├── RentalSeeder.php (comprehensive rental data)
+├── TarifRentalSeeder.php (pricing configurations)
+└── UserBulkSeeder.php (bulk user generation)
 ```
+
+#### New Enhanced Seeders (2025)
+
+**GmailRenterSeeder.php**
+
+-   Creates 25 realistic Indonesian renters
+-   Uses authentic Gmail addresses (@gmail.com)
+-   Indonesian names like: Andi Wijaya, Budi Santoso, Citra Kirana
+-   Purpose: Create realistic rental history data
+
+**GmailRentalSeeder.php**
+
+-   Generates 163 rental records over 6 months
+-   Uses only Gmail-based renter accounts
+-   Supports all booking statuses and payment methods
+-   Creates realistic rental patterns and pricing
+
+**CompleteUserSeeder.php**
+
+-   Comprehensive user creation (Admin, Owners, Renters)
+-   Enhanced with complete address and phone data
+-   Integrated with Gmail renter system
 
 ### UserSeeder Example
 

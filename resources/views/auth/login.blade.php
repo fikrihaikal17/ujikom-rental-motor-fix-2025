@@ -59,20 +59,14 @@
       </button>
     </div>
 
-    <!-- Remember Me & Forgot Password -->
-    <div class="flex items-center justify-between text-sm">
+    <!-- Remember Me -->
+    <div class="flex items-center text-sm">
       <div class="flex items-center">
         <input id="remember-me" name="remember" type="checkbox"
           class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded">
         <label for="remember-me" class="ml-2 block text-primary-600">
           Remember Me
         </label>
-      </div>
-
-      <div>
-        <a href="#" class="text-gray-500 hover:text-gray-700 transition-colors duration-200">
-          Forgot Password
-        </a>
       </div>
     </div>
   </div>

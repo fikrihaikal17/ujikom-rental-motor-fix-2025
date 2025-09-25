@@ -24,8 +24,10 @@ class OwnerController extends Controller
     // Statistics for owner's motors
     $stats = [
       'total_motors' => Motor::where('pemilik_id', $owner->id)->count(),
-      'verified_motors' => Motor::where('pemilik_id', $owner->id)->where('status', \App\Enums\MotorStatus::VERIFIED)->count(),
-      'pending_verifications' => Motor::where('pemilik_id', $owner->id)->where('status', \App\Enums\MotorStatus::PENDING)->count(),
+      'verified_motors' => Motor::where('pemilik_id', $owner->id)
+        ->where('status', \App\Enums\MotorStatus::AVAILABLE)->count(), // Motors available for rent
+      'pending_verifications' => Motor::where('pemilik_id', $owner->id)
+        ->where('status', \App\Enums\MotorStatus::PENDING)->count(),
       'active_rentals' => Penyewaan::whereHas('motor', function ($q) use ($owner) {
         $q->where('pemilik_id', $owner->id);
       })->where('status', \App\Enums\BookingStatus::ACTIVE)->count(),
@@ -34,7 +36,7 @@ class OwnerController extends Controller
       })->sum('bagi_hasil_pemilik'),
       'monthly_revenue' => BagiHasil::whereHas('penyewaan.motor', function ($q) use ($owner) {
         $q->where('pemilik_id', $owner->id);
-      })->whereMonth('created_at', now()->month)->sum('bagi_hasil_pemilik')
+      })->where('tanggal', 'like', now()->format('Y-m') . '%')->sum('bagi_hasil_pemilik') // Use tanggal field instead of created_at
     ];
 
     // Recent motors
@@ -483,17 +485,24 @@ class OwnerController extends Controller
   public function updateProfile(Request $request)
   {
     $request->validate([
-      'name' => 'required|string|max:255',
+      'nama' => 'required|string|max:255',
       'email' => 'required|string|email|max:255|unique:users,email,' . Auth::id(),
-      'phone' => 'nullable|string|max:15',
-      'address' => 'nullable|string',
+      'no_telepon' => 'nullable|string|max:15',
+      'alamat' => 'nullable|string',
     ]);
 
     /** @var \App\Models\User $user */
     $user = Auth::user();
-    $user->update($request->only(['name', 'email', 'phone', 'address']));
 
-    return redirect()->route('owner.profile')->with('success', 'Profil berhasil diperbarui');
+    // Map no_telepon to no_tlpn for database compatibility
+    $updateData = $request->only(['nama', 'email', 'alamat']);
+    if ($request->has('no_telepon')) {
+      $updateData['no_tlpn'] = $request->no_telepon;
+    }
+
+    $user->update($updateData);
+
+    return redirect()->route('owner.profile')->with('success', 'Profil berhasil diperbarui!');
   }
 
   /**
@@ -512,21 +521,34 @@ class OwnerController extends Controller
   {
     $request->validate([
       'password' => 'nullable|string|min:8|confirmed',
-      'notification_email' => 'boolean',
-      'notification_sms' => 'boolean',
+      'notification_email' => 'nullable|boolean',
+      'notification_sms' => 'nullable|boolean',
+      'notification_push' => 'nullable|boolean',
     ]);
 
     /** @var \App\Models\User $user */
     $user = Auth::user();
 
+    $updated = false;
+
+    // Update password if provided
     if ($request->filled('password')) {
       $user->update(['password' => bcrypt($request->password)]);
+      $updated = true;
     }
 
-    // Update other settings if needed
-    // For now just redirect back with success
+    // Update notification preferences
+    // Note: These could be stored in a separate settings table or user preferences column
+    // For now, we'll just acknowledge the form submission
+    if ($request->has(['notification_email', 'notification_sms', 'notification_push'])) {
+      // Here you could store notification preferences in database
+      // For example: $user->update(['notification_preferences' => json_encode($request->only(['notification_email', 'notification_sms', 'notification_push']))]);
+      $updated = true;
+    }
 
-    return redirect()->route('owner.settings')->with('success', 'Pengaturan berhasil diperbarui');
+    $message = $updated ? 'Pengaturan berhasil diperbarui!' : 'Tidak ada perubahan yang disimpan.';
+
+    return redirect()->route('owner.settings')->with('success', $message);
   }
 
   /**
@@ -782,7 +804,7 @@ class OwnerController extends Controller
     $revenueHistory = BagiHasil::whereHas('penyewaan.motor', function ($q) use ($owner) {
       $q->where('pemilik_id', $owner->id);
     })
-      ->with(['penyewaan.motor', 'penyewaan.user'])
+      ->with(['penyewaan.motor', 'penyewaan.penyewa'])
       ->orderBy('created_at', 'desc')
       ->get();
 
@@ -803,5 +825,40 @@ class OwnerController extends Controller
     $pdf = PDF::loadView('owner.revenue.history-pdf', compact('revenueHistory', 'stats', 'owner'));
 
     return $pdf->download('riwayat-pendapatan-' . now()->format('Y-m-d') . '.pdf');
+  }
+
+  public function printMotorsPdf()
+  {
+    $owner = Auth::user();
+
+    // Pastikan user adalah pemilik motor
+    if ($owner->role !== \App\Enums\UserRole::PEMILIK) {
+      abort(403, 'Unauthorized access.');
+    }
+
+    $motors = Motor::where('pemilik_id', $owner->id)
+      ->with(['tarifRental'])
+      ->withCount(['penyewaans as total_rentals'])
+      ->withSum(['penyewaans as total_revenue' => function ($q) {
+        $q->join('bagi_hasils', 'penyewaans.id', '=', 'bagi_hasils.penyewaan_id');
+      }], 'bagi_hasils.bagi_hasil_pemilik')
+      ->orderBy('created_at', 'desc')
+      ->get();
+
+    $stats = [
+      'total_motors' => $motors->count(),
+      'available_motors' => $motors->where('status', \App\Enums\MotorStatus::AVAILABLE)->count(),
+      'rented_motors' => $motors->where('status', \App\Enums\MotorStatus::RENTED)->count(),
+      'pending_motors' => $motors->where('status', \App\Enums\MotorStatus::PENDING)->count(),
+      'total_revenue' => $motors->sum('total_revenue') ?? 0,
+    ];
+
+    // Set paper size dan orientasi
+    $pdf = PDF::loadView('owner.motors.pdf', compact('motors', 'stats', 'owner'))
+      ->setPaper('a4', 'landscape');
+
+    $filename = 'daftar-motor-' . str_replace(' ', '-', strtolower($owner->name)) . '-' . now()->format('Y-m-d') . '.pdf';
+
+    return $pdf->download($filename);
   }
 }

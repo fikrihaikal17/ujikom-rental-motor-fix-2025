@@ -99,7 +99,7 @@
             <!-- Motor Image -->
             <div class="w-32 h-32 bg-gray-300 rounded-lg mr-6 flex-shrink-0">
               @if($booking->motor->photo)
-              <img src="{{ asset('storage/' . $booking->motor->photo) }}"
+              <img src="{{ asset($booking->motor->photo) }}"
                 alt="{{ $booking->motor->nama_motor }}"
                 class="w-full h-full object-cover rounded-lg">
               @else

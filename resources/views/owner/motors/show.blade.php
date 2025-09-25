@@ -180,7 +180,7 @@
             @foreach($motor->penyewaans->take(10) as $penyewaan)
             <tr>
               <td class="px-6 py-4 whitespace-nowrap">
-                <div class="text-sm font-medium text-gray-900">{{ $penyewaan->penyewa->nama }}</div>
+                <div class="text-sm font-medium text-gray-900">{{ $penyewaan->penyewa->name }}</div>
                 <div class="text-sm text-gray-500">{{ $penyewaan->penyewa->email }}</div>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
@@ -188,7 +188,7 @@
                 {{ \Carbon\Carbon::parse($penyewaan->tanggal_selesai)->format('d M Y') }}
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                Rp {{ number_format($penyewaan->jumlah_bayar, 0, ',', '.') }}
+                Rp {{ number_format($penyewaan->harga, 0, ',', '.') }}
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
                 @php
@@ -199,9 +199,10 @@
                 'completed' => 'bg-gray-100 text-gray-800',
                 'cancelled' => 'bg-red-100 text-red-800'
                 ];
+                $statusValue = $penyewaan->status instanceof \App\Enums\BookingStatus ? $penyewaan->status->value : $penyewaan->status;
                 @endphp
-                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full {{ $statusColors[$penyewaan->status] ?? 'bg-gray-100 text-gray-800' }}">
-                  {{ ucfirst($penyewaan->status) }}
+                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full {{ $statusColors[$statusValue] ?? 'bg-gray-100 text-gray-800' }}">
+                  {{ ucfirst($statusValue) }}
                 </span>
               </td>
             </tr>
@@ -284,14 +285,14 @@
         <div class="flex justify-between">
           <span class="text-sm text-gray-600">Sedang Disewa:</span>
           <span class="text-sm font-medium text-gray-900">
-            {{ $motor->penyewaans ? $motor->penyewaans->whereIn('status', ['confirmed', 'active'])->count() : 0 }}
+            {{ $motor->penyewaans ? $motor->penyewaans->whereIn('status', [\App\Enums\BookingStatus::CONFIRMED, \App\Enums\BookingStatus::ACTIVE])->count() : 0 }}
           </span>
         </div>
 
         <div class="flex justify-between">
           <span class="text-sm text-gray-600">Total Pendapatan:</span>
           <span class="text-sm font-medium text-gray-900">
-            Rp {{ number_format($motor->penyewaans ? $motor->penyewaans->where('status', 'completed')->sum('jumlah_bayar') : 0, 0, ',', '.') }}
+            Rp {{ number_format($totalRevenue, 0, ',', '.') }}
           </span>
         </div>
       </div>

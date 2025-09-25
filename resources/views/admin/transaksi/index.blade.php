@@ -219,10 +219,10 @@
       </table>
     </div>
 
-    <!-- Pagination -->
+    <!-- Enhanced Pagination -->
     @if($transaksis->hasPages())
-    <div class="px-6 py-3 border-t border-gray-200">
-      {{ $transaksis->appends(request()->query())->links() }}
+    <div class="px-6 py-4">
+      {{ $transaksis->appends(request()->query())->links('custom.advanced-pagination') }}
     </div>
     @endif
   </div>

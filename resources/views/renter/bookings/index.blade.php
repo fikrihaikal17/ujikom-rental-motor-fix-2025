@@ -78,7 +78,7 @@
             <!-- Motor Image -->
             <div class="w-20 h-20 bg-gray-300 rounded-lg mr-4 flex-shrink-0">
               @if($booking->motor->photo)
-              <img src="{{ asset('storage/' . $booking->motor->photo) }}"
+              <img src="{{ asset($booking->motor->photo) }}"
                 alt="{{ $booking->motor->nama_motor }}"
                 class="w-full h-full object-cover rounded-lg">
               @else
@@ -164,7 +164,7 @@
 
   <!-- Pagination -->
   <div class="mt-6">
-    {{ $bookings->links() }}
+    {{ $bookings->links('custom.advanced-pagination') }}
   </div>
   @else
   <!-- Empty State -->

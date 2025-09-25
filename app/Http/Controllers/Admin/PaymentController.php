@@ -113,14 +113,14 @@ class PaymentController extends Controller
 
   public function show(Payment $payment)
   {
-    $payment->load(['penyewaan.motor', 'penyewaan.user']);
+    $payment->load(['penyewaan.motor', 'penyewaan.penyewa']);
 
     return view('admin.payments.show', compact('payment'));
   }
 
   public function edit(Payment $payment)
   {
-    $penyewaans = Penyewaan::with(['motor', 'user'])->get();
+    $penyewaans = Penyewaan::with(['motor', 'penyewa'])->get();
 
     return view('admin.payments.edit', compact('payment', 'penyewaans'));
   }
@@ -164,7 +164,7 @@ class PaymentController extends Controller
 
   public function exportCsv()
   {
-    $payments = Payment::with(['penyewaan.motor', 'penyewaan.user'])->get();
+    $payments = Payment::with(['penyewaan.motor', 'penyewaan.penyewa'])->get();
 
     $filename = 'payments_' . date('Y-m-d') . '.csv';
 
@@ -192,7 +192,7 @@ class PaymentController extends Controller
       foreach ($payments as $payment) {
         fputcsv($file, [
           $payment->transaction_code,
-          $payment->penyewaan->user->name,
+          $payment->penyewaan->penyewa->nama,
           $payment->penyewaan->motor->nama_motor,
           $payment->amount,
           $payment->payment_method,

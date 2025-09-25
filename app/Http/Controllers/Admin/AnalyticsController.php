@@ -23,7 +23,7 @@ class AnalyticsController extends Controller
     $totalMotors = Motor::count();
     $totalUsers = User::where('role', 'renter')->count();
 
-    // Additional statistics
+    // Additional statistics for quick stats cards
     $activeBookings = Penyewaan::whereIn('status', [BookingStatus::CONFIRMED, BookingStatus::ACTIVE])->count();
     $completedBookings = Penyewaan::where('status', BookingStatus::COMPLETED)->count();
     $cancelledBookings = Penyewaan::where('status', BookingStatus::CANCELLED)->count();

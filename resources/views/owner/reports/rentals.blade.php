@@ -173,7 +173,7 @@
 
       <!-- Pagination -->
       <div class="px-6 py-4 bg-gray-50 border-t border-gray-200">
-        {{ $recentRentals->links() }}
+        {{ $recentRentals->links('custom.advanced-pagination') }}
       </div>
       @else
       <div class="p-12 text-center">

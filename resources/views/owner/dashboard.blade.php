@@ -28,6 +28,25 @@
     </div>
 </div>
 
+<!-- Info Alert for No Monthly Revenue -->
+@if(($stats["monthly_revenue"] ?? 0) == 0 && ($stats["total_motors"] ?? 0) > 0)
+<div class="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+    <div class="flex">
+        <div class="flex-shrink-0">
+            <svg class="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+            </svg>
+        </div>
+        <div class="ml-3">
+            <p class="text-sm text-blue-700">
+                <strong>Info:</strong> Tidak ada pendapatan bulan ini ({{ now()->format('F Y') }}). 
+                Motor Anda tersedia untuk penyewaan dan menunggu penyewa.
+            </p>
+        </div>
+    </div>
+</div>
+@endif
+
 <!-- Statistics Cards -->
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
     <!-- Total Motors -->
@@ -131,7 +150,7 @@
         </div>
         <div class="bg-gray-50 px-5 py-3">
             <div class="text-sm">
-                <a href="#" class="font-medium text-green-700 hover:text-green-900">
+                <a href="{{ route('owner.revenue.history') }}" class="font-medium text-green-700 hover:text-green-900">
                     Lihat Detail
                 </a>
             </div>
@@ -158,7 +177,7 @@
                 Kelola Motor
             </a>
 
-            <a href="#" class="flex items-center justify-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transition-colors">
+            <a href="{{ route('owner.revenue.history') }}" class="flex items-center justify-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transition-colors">
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
                 </svg>

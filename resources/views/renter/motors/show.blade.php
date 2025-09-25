@@ -22,7 +22,7 @@
       <div class="md:w-1/2">
         <div class="h-96 bg-gray-300 flex items-center justify-center">
           @if($motor->photo)
-          <img src="{{ asset('storage/' . $motor->photo) }}" alt="{{ $motor->nama_motor }}"
+          <img src="{{ asset($motor->photo) }}" alt="{{ $motor->merk }} {{ $motor->model }}"
             class="w-full h-full object-cover">
           @else
           <div class="text-center text-gray-500">

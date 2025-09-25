@@ -243,8 +243,8 @@
   </div>
 
   @if(method_exists($payments, 'hasPages') && $payments->hasPages())
-  <div class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
-    {{ $payments->appends(request()->query())->links() }}
+  <div class="px-6 py-4">
+    {{ $payments->appends(request()->query())->links('custom.advanced-pagination') }}
   </div>
   @endif
 

@@ -162,10 +162,13 @@
       <thead class="bg-gray-50">
         <tr>
           <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-            Periode
+            Tanggal
           </th>
           <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-            Owner
+            Owner & Motor
+          </th>
+          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            Penyewa
           </th>
           <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
             Total Revenue
@@ -177,13 +180,7 @@
             Bagian Owner
           </th>
           <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-            Persentase
-          </th>
-          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
             Status
-          </th>
-          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-            Tanggal
           </th>
           <th scope="col" class="relative px-6 py-3">
             <span class="sr-only">Actions</span>
@@ -194,35 +191,32 @@
         @foreach($bagiHasils as $bagiHasil)
         <tr class="hover:bg-gray-50">
           <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-            {{ \Carbon\Carbon::parse($bagiHasil->periode_mulai)->format('M Y') }}
-            @if($bagiHasil->periode_selesai)
-            - {{ \Carbon\Carbon::parse($bagiHasil->periode_selesai)->format('M Y') }}
-            @endif
+            {{ \Carbon\Carbon::parse($bagiHasil->tanggal)->format('d M Y') }}
           </td>
           <td class="px-6 py-4 whitespace-nowrap">
             <div class="flex items-center">
               <div class="flex-shrink-0 h-10 w-10">
                 <div class="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">
-                  <span class="text-sm font-medium text-gray-700">{{ substr($bagiHasil->transaksi->penyewaan->motor->user->nama, 0, 1) }}</span>
+                  <span class="text-sm font-medium text-gray-700">{{ substr($bagiHasil->penyewaan->motor->owner->nama ?? 'N/A', 0, 1) }}</span>
                 </div>
               </div>
               <div class="ml-4">
-                <div class="text-sm font-medium text-gray-900">{{ $bagiHasil->transaksi->penyewaan->motor->user->nama }}</div>
-                <div class="text-sm text-gray-500">{{ $bagiHasil->transaksi->penyewaan->motor->merk }} {{ $bagiHasil->transaksi->penyewaan->motor->model }}</div>
+                <div class="text-sm font-medium text-gray-900">{{ $bagiHasil->penyewaan->motor->owner->nama ?? 'N/A' }}</div>
+                <div class="text-sm text-gray-500">{{ $bagiHasil->penyewaan->motor->merk ?? 'N/A' }} {{ $bagiHasil->penyewaan->motor->model ?? 'N/A' }}</div>
               </div>
             </div>
           </td>
-          <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-            Rp {{ number_format($bagiHasil->total_revenue, 0, ',', '.') }}
-          </td>
-          <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-            Rp {{ number_format($bagiHasil->admin_share, 0, ',', '.') }}
-          </td>
-          <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-            Rp {{ number_format($bagiHasil->owner_share, 0, ',', '.') }}
-          </td>
           <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-            {{ number_format($bagiHasil->admin_percentage, 1) }}% / {{ number_format($bagiHasil->owner_percentage, 1) }}%
+            {{ $bagiHasil->penyewaan->penyewa->nama ?? 'N/A' }}
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+            Rp {{ number_format($bagiHasil->total_pendapatan, 0, ',', '.') }}
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+            Rp {{ number_format($bagiHasil->bagi_hasil_admin, 0, ',', '.') }}
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+            Rp {{ number_format($bagiHasil->bagi_hasil_pemilik, 0, ',', '.') }}
           </td>
           <td class="px-6 py-4 whitespace-nowrap">
             @php
@@ -240,12 +234,9 @@
               {{ $statusLabels[$status] }}
             </span>
           </td>
-          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-            {{ \Carbon\Carbon::parse($bagiHasil->created_at)->format('d/m/Y') }}
-          </td>
           <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
             <div class="flex items-center space-x-2">
-              <a href="{{ route('admin.bagi-hasil.show', $bagiHasil) }}" class="text-primary-600 hover:text-primary-900">
+              <a href="{{ route('admin.bagi-hasil.show', $bagiHasil) }}" class="text-indigo-600 hover:text-indigo-900">
                 <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
@@ -262,7 +253,7 @@
                 </button>
               </form>
               @endif
-              <a href="{{ route('admin.bagi-hasil.download', $bagiHasil) }}" class="text-indigo-600 hover:text-indigo-900" title="Download Receipt">
+              <a href="{{ route('admin.bagi-hasil.export.pdf') }}" class="text-indigo-600 hover:text-indigo-900" title="Export PDF">
                 <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                 </svg>
@@ -276,8 +267,8 @@
   </div>
 
   @if(method_exists($bagiHasils, 'hasPages') && $bagiHasils->hasPages())
-  <div class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
-    {{ $bagiHasils->appends(request()->query())->links() }}
+  <div class="px-6 py-4">
+    {{ $bagiHasils->appends(request()->query())->links('custom.advanced-pagination') }}
   </div>
   @endif
 

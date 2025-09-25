@@ -58,38 +58,217 @@
 </div>
 @endif
 
-<!-- Users Table -->
-<div class="bg-white shadow rounded-lg overflow-hidden">
-  <div class="px-4 py-5 sm:p-6">
-    <!-- Search and Filter -->
-    <form method="GET" action="{{ route('admin.users.index') }}" id="filter-form">
-      <div class="mb-4 flex flex-col sm:flex-row gap-4">
-        <div class="flex-1">
-          <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari pengguna..." class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm">
+<!-- Enhanced Filter Section -->
+<div class="bg-white rounded-xl shadow-sm border border-gray-200 mb-6">
+  <div class="px-6 py-4 border-b border-gray-200">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="flex items-center justify-center w-10 h-10 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg shadow-sm">
+          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.207A1 1 0 013 6.5V4z"></path>
+          </svg>
         </div>
-        <div class="sm:w-48">
-          <select name="role" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm">
-            <option value="">Semua Role</option>
-            <option value="admin" {{ request('role') == 'admin' ? 'selected' : '' }}>Admin</option>
-            <option value="pemilik" {{ request('role') == 'pemilik' ? 'selected' : '' }}>Pemilik Kendaraan</option>
-            <option value="penyewa" {{ request('role') == 'penyewa' ? 'selected' : '' }}>Penyewa</option>
-          </select>
+        <div>
+          <h3 class="text-lg font-semibold text-gray-900">Filter & Pencarian</h3>
+          <p class="text-sm text-gray-600">Cari dan filter pengguna berdasarkan kriteria tertentu</p>
         </div>
-        <div class="flex gap-2">
-          <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
-            <svg class="-ml-1 mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      </div>
+      
+      <!-- Active Filters Indicator -->
+      @if(request('search') || request('role'))
+      <div class="flex items-center space-x-2">
+        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+          Filter Aktif
+        </span>
+        <span class="text-sm text-gray-500">
+          {{ $users->total() }} hasil ditemukan
+        </span>
+      </div>
+      @else
+      <div class="text-sm text-gray-500">
+        Total {{ $users->total() }} pengguna
+      </div>
+      @endif
+    </div>
+  </div>
+
+  <form method="GET" action="{{ route('admin.users.index') }}" id="filter-form" class="p-6">
+    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 items-end">
+      <!-- Search Input -->
+      <div class="lg:col-span-2">
+        <label for="search" class="block text-sm font-medium text-gray-700 mb-2">
+          <svg class="inline w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+          </svg>
+          Pencarian Pengguna
+        </label>
+        <div class="relative">
+          <input type="text" 
+                 id="search"
+                 name="search" 
+                 value="{{ request('search') }}" 
+                 placeholder="Cari berdasarkan nama, email, atau telepon..." 
+                 class="block w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 sm:text-sm">
+          <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
             </svg>
-            Filter
+          </div>
+          @if(request('search'))
+          <button type="button" 
+                  onclick="document.getElementById('search').value=''; document.getElementById('filter-form').submit();"
+                  class="absolute inset-y-0 right-0 pr-3 flex items-center">
+            <svg class="h-4 w-4 text-gray-400 hover:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
           </button>
+          @endif
+        </div>
+      </div>
+
+      <!-- Role Filter -->
+      <div>
+        <label for="role" class="block text-sm font-medium text-gray-700 mb-2">
+          <svg class="inline w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+          </svg>
+          Filter Role
+        </label>
+        <select name="role" 
+                id="role"
+                class="block w-full py-3 px-4 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 sm:text-sm">
+          <option value="">Semua Role</option>
+          <option value="admin" {{ request('role') == 'admin' ? 'selected' : '' }}>
+            🛡️ Administrator
+          </option>
+          <option value="pemilik" {{ request('role') == 'pemilik' ? 'selected' : '' }}>
+            🏍️ Pemilik Kendaraan
+          </option>
+          <option value="penyewa" {{ request('role') == 'penyewa' ? 'selected' : '' }}>
+            👤 Penyewa
+          </option>
+        </select>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex flex-col">
+        <label class="block text-sm font-medium text-gray-700 mb-2">
+          <svg class="inline w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4"></path>
+          </svg>
+          Aksi
+        </label>
+        
+        <div class="flex flex-col space-y-2">
+          <button type="submit" 
+                  class="inline-flex items-center justify-center px-4 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-sm font-medium text-white rounded-lg hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-lg transform hover:scale-105 transition-all duration-200">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+            </svg>
+            Terapkan Filter
+          </button>
+
           @if(request('search') || request('role'))
-          <a href="{{ route('admin.users.index') }}" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
-            Reset
+          <a href="{{ route('admin.users.index') }}" 
+             class="inline-flex items-center justify-center px-4 py-3 border border-gray-300 text-sm font-medium text-gray-700 bg-white rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+            </svg>
+            Reset Filter
           </a>
           @endif
         </div>
       </div>
-    </form>
+    </div>
+
+    <!-- Advanced Filters (Optional - can be expanded) -->
+    <div class="mt-4 pt-4 border-t border-gray-200" x-data="{ showAdvanced: false }">
+      <button type="button" 
+              @click="showAdvanced = !showAdvanced"
+              class="inline-flex items-center text-sm font-medium text-blue-600 hover:text-blue-500 transition-colors duration-200">
+        <svg class="w-4 h-4 mr-1 transition-transform duration-200" 
+             :class="{ 'rotate-180': showAdvanced }"
+             fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+        </svg>
+        Filter Lanjutan
+      </button>
+      
+      <div x-show="showAdvanced" 
+           x-transition:enter="transition ease-out duration-200"
+           x-transition:enter-start="opacity-0 transform scale-95"
+           x-transition:enter-end="opacity-100 transform scale-100"
+           x-transition:leave="transition ease-in duration-150"
+           x-transition:leave-start="opacity-100 transform scale-100"
+           x-transition:leave-end="opacity-0 transform scale-95"
+           class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4"
+           style="display: none;">
+        
+        <!-- Date Range -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">
+            <svg class="inline w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+            </svg>
+            Tanggal Bergabung
+          </label>
+          <select name="date_range" class="block w-full py-2 px-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+            <option value="">Semua Waktu</option>
+            <option value="today" {{ request('date_range') == 'today' ? 'selected' : '' }}>Hari Ini</option>
+            <option value="week" {{ request('date_range') == 'week' ? 'selected' : '' }}>Minggu Ini</option>
+            <option value="month" {{ request('date_range') == 'month' ? 'selected' : '' }}>Bulan Ini</option>
+            <option value="year" {{ request('date_range') == 'year' ? 'selected' : '' }}>Tahun Ini</option>
+          </select>
+        </div>
+
+        <!-- Status -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">
+            <svg class="inline w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            Status Akun
+          </label>
+          <select name="status" class="block w-full py-2 px-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+            <option value="">Semua Status</option>
+            <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Aktif</option>
+            <option value="inactive" {{ request('status') == 'inactive' ? 'selected' : '' }}>Tidak Aktif</option>
+          </select>
+        </div>
+
+        <!-- Sort By -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">
+            <svg class="inline w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"></path>
+            </svg>
+            Urutkan Berdasarkan
+          </label>
+          <select name="sort" class="block w-full py-2 px-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+            <option value="name_asc" {{ request('sort') == 'name_asc' ? 'selected' : '' }}>Nama (A-Z)</option>
+            <option value="name_desc" {{ request('sort') == 'name_desc' ? 'selected' : '' }}>Nama (Z-A)</option>
+            <option value="created_desc" {{ request('sort', 'created_desc') == 'created_desc' ? 'selected' : '' }}>Terbaru</option>
+            <option value="created_asc" {{ request('sort') == 'created_asc' ? 'selected' : '' }}>Terlama</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+
+<!-- Users Table -->
+<div class="bg-white shadow-sm rounded-xl border border-gray-200 overflow-hidden">
+  <div class="px-6 py-4 border-b border-gray-200">
+    <div class="flex items-center justify-between">
+      <h3 class="text-lg font-semibold text-gray-900">Daftar Pengguna</h3>
+      <div class="flex items-center space-x-2 text-sm text-gray-600">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
+        </svg>
+        <span>{{ $users->count() }} dari {{ $users->total() }} pengguna</span>
+      </div>
+    </div>
+  </div>
 
     @if($users->count() > 0)
     <div class="overflow-x-auto">
@@ -176,8 +355,8 @@
     </div>
 
     <!-- Pagination -->
-    <div class="mt-6">
-      {{ $users->links() }}
+    <div class="mt-8">
+      {{ $users->links('custom.advanced-pagination') }}
     </div>
     @else
     <div class="text-center py-12">
@@ -200,6 +379,62 @@
 </div>
 
 <script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Auto-submit form on role change
+    document.getElementById('role').addEventListener('change', function() {
+      document.getElementById('filter-form').submit();
+    });
+
+    // Real-time search with debounce
+    let searchTimeout;
+    const searchInput = document.getElementById('search');
+    
+    searchInput.addEventListener('input', function() {
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(() => {
+        // Only auto-submit if user has typed something or cleared the field
+        if (this.value.length >= 3 || this.value.length === 0) {
+          document.getElementById('filter-form').submit();
+        }
+      }, 500); // Wait 500ms after user stops typing
+    });
+
+    // Enhanced filter feedback
+    const form = document.getElementById('filter-form');
+    form.addEventListener('submit', function() {
+      const submitBtn = form.querySelector('button[type="submit"]');
+      const originalText = submitBtn.innerHTML;
+      
+      submitBtn.innerHTML = `
+        <svg class="animate-spin w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        Memfilter...
+      `;
+      submitBtn.disabled = true;
+    });
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', function(e) {
+      // Ctrl/Cmd + K to focus search
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        searchInput.focus();
+        searchInput.select();
+      }
+      
+      // Escape to clear search
+      if (e.key === 'Escape' && document.activeElement === searchInput) {
+        searchInput.value = '';
+        document.getElementById('filter-form').submit();
+      }
+    });
+
+    // Add search hints
+    searchInput.setAttribute('title', 'Gunakan Ctrl+K untuk fokus cepat, Escape untuk clear');
+  });
+
   // Export PDF function that includes current filters
   function exportPDF() {
     const form = document.getElementById('filter-form');
@@ -222,5 +457,72 @@
     // Navigate to export URL
     window.location.href = exportUrl;
   }
+
+  // Filter statistics update
+  function updateFilterStats() {
+    const totalUsers = {{ $users->total() }};
+    const currentResults = {{ $users->count() }};
+    
+    if (totalUsers !== currentResults) {
+      const statsElement = document.querySelector('.filter-stats');
+      if (statsElement) {
+        statsElement.innerHTML = `
+          <div class="flex items-center space-x-2 text-sm">
+            <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.207A1 1 0 013 6.5V4z"></path>
+            </svg>
+            <span class="text-blue-600 font-medium">${currentResults} dari ${totalUsers} pengguna</span>
+          </div>
+        `;
+      }
+    }
+  }
 </script>
+
+@push('styles')
+<style>
+  /* Custom styles for enhanced filter */
+  .filter-input:focus {
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    border-color: #3b82f6;
+  }
+  
+  .filter-select:focus {
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    border-color: #3b82f6;
+  }
+  
+  /* Smooth transitions for advanced filters */
+  [x-cloak] { display: none !important; }
+  
+  /* Loading state styles */
+  .btn-loading {
+    pointer-events: none;
+    opacity: 0.7;
+  }
+  
+  /* Search input enhancements */
+  #search::placeholder {
+    color: #9ca3af;
+    font-style: italic;
+  }
+  
+  /* Active filter indicators */
+  .active-filter {
+    position: relative;
+  }
+  
+  .active-filter::after {
+    content: '';
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    width: 8px;
+    height: 8px;
+    background: #3b82f6;
+    border-radius: 50%;
+    border: 2px solid white;
+  }
+</style>
+@endpush
 @endsection

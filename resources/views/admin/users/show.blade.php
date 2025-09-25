@@ -3,438 +3,543 @@
 @section('title', 'Detail Pengguna')
 
 @section('content')
-<!-- Header -->
-<div class="mb-8">
-  <div class="flex items-center">
-    <a href="{{ route('admin.users.index') }}" class="mr-4 text-gray-400 hover:text-gray-600">
-      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
-      </svg>
-    </a>
-    <div>
-      <h1 class="text-2xl font-bold text-gray-900">Detail Pengguna</h1>
-      <p class="text-gray-600">Informasi lengkap tentang pengguna {{ $user->nama }}</p>
-    </div>
-  </div>
-</div>
-</a>
-
-<!-- Motor Verification -->
-<a href="#" class="text-gray-700 hover:text-gray-900 hover:bg-gray-50 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
-  <svg class="text-gray-400 group-hover:text-gray-500 mr-3 flex-shrink-0 h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-  </svg>
-  Verifikasi Motor
-</a>
-
-<!-- Transactions -->
-<a href="#" class="text-gray-700 hover:text-gray-900 hover:bg-gray-50 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
-  <svg class="text-gray-400 group-hover:text-gray-500 mr-3 flex-shrink-0 h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-  </svg>
-  Transaksi
-</a>
-
-<!-- Reports -->
-<div x-data="{ open: false }" class="space-y-1">
-  <button @click="open = !open" class="text-gray-700 hover:text-gray-900 hover:bg-gray-50 group w-full flex items-center pl-2 pr-1 py-2 text-left text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500">
-    <svg class="text-gray-400 group-hover:text-gray-500 mr-3 flex-shrink-0 h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-    </svg>
-    <span class="flex-1">Laporan</span>
-    <svg :class="{'text-gray-400 rotate-90': open, 'text-gray-300': !open}" class="ml-3 flex-shrink-0 h-5 w-5 transform group-hover:text-gray-400 transition-colors ease-in-out duration-150" viewBox="0 0 20 20" fill="currentColor">
-      <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
-    </svg>
-  </button>
-  <div x-show="open" class="space-y-1">
-    <a href="#" class="group w-full flex items-center pl-11 pr-2 py-2 text-sm font-medium text-gray-600 rounded-md hover:text-gray-900 hover:bg-gray-50">
-      Pendapatan
-    </a>
-    <a href="#" class="group w-full flex items-center pl-11 pr-2 py-2 text-sm font-medium text-gray-600 rounded-md hover:text-gray-900 hover:bg-gray-50">
-      Analitik
-    </a>
-    <a href="#" class="group w-full flex items-center pl-11 pr-2 py-2 text-sm font-medium text-gray-600 rounded-md hover:text-gray-900 hover:bg-gray-50">
-      Export Data
-    </a>
-  </div>
-</div>
-
-<!-- Settings -->
-<a href="#" class="text-gray-700 hover:text-gray-900 hover:bg-gray-50 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
-  <svg class="text-gray-400 group-hover:text-gray-500 mr-3 flex-shrink-0 h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
-    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-  </svg>
-  Pengaturan
-</a>
-</div>
-@endsection
-
-@section('content')
-<!-- Header -->
-<div class="mb-8">
-  <div class="flex items-center justify-between">
-    <div class="flex items-center">
-      <a href="{{ route('admin.users.index') }}" class="mr-4 text-gray-400 hover:text-gray-600">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
-        </svg>
-      </a>
-      <div>
-        <h1 class="text-2xl font-semibold text-gray-900">Detail Pengguna</h1>
-        <p class="mt-2 text-sm text-gray-700">Informasi lengkap pengguna {{ $user->nama }}.</p>
-      </div>
-    </div>
-    <div class="flex space-x-3">
-      <a href="{{ route('admin.users.edit', $user) }}"
-        class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
-        <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-        </svg>
-        Edit
-      </a>
-      @if($user->id !== auth()->id())
-      <form action="{{ route('admin.users.destroy', $user) }}" method="POST" class="inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus pengguna ini?')">
-        @csrf
-        @method('DELETE')
-        <button type="submit"
-          class="inline-flex items-center px-4 py-2 border border-red-300 shadow-sm text-sm font-medium rounded-md text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
-          <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+<div class="px-4 sm:px-6 lg:px-8">
+  <!-- Header -->
+  <div class="mb-8">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center">
+        <a href="{{ route('admin.users.index') }}" class="mr-4 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors duration-200">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
           </svg>
-          Hapus
-        </button>
-      </form>
-      @endif
+        </a>
+        <div class="flex-1">
+          <div class="flex items-center space-x-3">
+            <div class="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl shadow-sm">
+              <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+              </svg>
+            </div>
+            <div>
+              <h1 class="text-2xl font-semibold leading-6 text-gray-900">Detail Pengguna</h1>
+              <p class="mt-1 text-sm text-gray-600">Kelola informasi lengkap pengguna <span class="font-medium text-blue-600">{{ $user->nama }}</span></p>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Action Buttons -->
+      <div class="flex items-center space-x-4">
+        <a href="{{ route('admin.users.edit', $user) }}"
+          class="inline-flex items-center px-5 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-lg shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transform hover:-translate-y-0.5 transition-all duration-300 font-semibold text-sm"
+          style="background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%) !important;">
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+          </svg>
+          Edit Pengguna
+        </a>
+        @if($user->id !== auth()->id())
+        <form action="{{ route('admin.users.destroy', $user) }}" method="POST" class="inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus pengguna ini?')">
+          @csrf
+          @method('DELETE')
+          <button type="submit"
+            class="inline-flex items-center px-5 py-2.5 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-lg shadow-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transform hover:-translate-y-0.5 transition-all duration-300 font-semibold text-sm"
+            style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+            </svg>
+            Hapus
+          </button>
+        </form>
+        @endif
+      </div>
     </div>
   </div>
-</div>
 
-<!-- User Details -->
-<div class="bg-white shadow rounded-lg overflow-hidden">
-  <div class="px-4 py-5 sm:p-0">
-    <dl class="sm:divide-y sm:divide-gray-200">
-      <!-- Profile Header -->
-      <div class="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-        <dt class="text-sm font-medium text-gray-500">Profil</dt>
-        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-          <div class="flex items-center">
-            <div class="flex-shrink-0 h-16 w-16">
-              <div class="h-16 w-16 rounded-full bg-primary-500 flex items-center justify-center">
-                <span class="text-xl font-medium text-white">{{ strtoupper(substr($user->nama, 0, 1)) }}</span>
-              </div>
-            </div>
-            <div class="ml-4">
-              <div class="text-lg font-medium text-gray-900">{{ $user->nama }}</div>
-              <div class="text-sm text-gray-500">{{ $user->email }}</div>
-              <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full mt-1
-                                {{ $user->role->value === 'admin' ? 'bg-purple-100 text-purple-800' : 
-                                   ($user->role->value === 'pemilik' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800') }}">
-                {{ $user->role->getDisplayName() }}
-              </span>
-            </div>
+  <!-- User Profile Card -->
+  <div class="bg-white shadow-sm rounded-xl border border-gray-200 overflow-hidden mb-8 card-shadow hover-scale">
+    <!-- Profile Header -->
+    <div class="px-6 py-6 bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-gray-200 gradient-animate">
+      <div class="flex items-center space-x-4">
+        <div class="flex-shrink-0">
+          <div class="h-20 w-20 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center shadow-lg avatar-container">
+            <span class="text-2xl font-bold text-white">{{ strtoupper(substr($user->nama, 0, 1)) }}</span>
           </div>
-        </dd>
-      </div>
-
-      <!-- Email -->
-      <div class="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-        <dt class="text-sm font-medium text-gray-500">Email</dt>
-        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ $user->email }}</dd>
-      </div>
-
-      <!-- No Telepon -->
-      <div class="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-        <dt class="text-sm font-medium text-gray-500">No. Telepon</dt>
-        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ $user->no_tlpn }}</dd>
-      </div>
-
-      <!-- Alamat -->
-      <div class="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-        <dt class="text-sm font-medium text-gray-500">Alamat</dt>
-        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ $user->alamat }}</dd>
-      </div>
-
-      <!-- Role -->
-      <div class="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-        <dt class="text-sm font-medium text-gray-500">Role</dt>
-        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-          <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full
-                        {{ $user->role->value === 'admin' ? 'bg-purple-100 text-purple-800' : 
-                           ($user->role->value === 'pemilik' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800') }}">
-            {{ $user->role->getDisplayName() }}
-          </span>
-        </dd>
-      </div>
-
-      <!-- Bergabung -->
-      <div class="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-        <dt class="text-sm font-medium text-gray-500">Bergabung</dt>
-        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-          <time datetime="{{ $user->created_at->toISOString() }}" data-format="full">{{ $user->created_at->format('d M Y H:i') }}</time>
-          <span class="text-gray-500">(<span class="local-datetime" data-datetime="{{ $user->created_at->toISOString() }}" data-format="relative">{{ $user->created_at->diffForHumans() }}</span>)</span>
-        </dd>
-      </div>
-
-      <!-- Terakhir Update -->
-      <div class="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-        <dt class="text-sm font-medium text-gray-500">Terakhir Update</dt>
-        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-          <time datetime="{{ $user->updated_at->toISOString() }}" data-format="full">{{ $user->updated_at->format('d M Y H:i') }}</time>
-          <span class="text-gray-500">(<span class="local-datetime" data-datetime="{{ $user->updated_at->toISOString() }}" data-format="relative">{{ $user->updated_at->diffForHumans() }}</span>)</span>
-        </dd>
-      </div>
-    </dl>
-  </div>
-</div>
-
-<!-- Activity Stats -->
-@if($user->role->value === 'admin')
-<!-- Admin Activity Section -->
-<div class="mt-8">
-  <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Aktivitas Admin</h3>
-  <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-    <!-- Login Sessions -->
-    <div class="bg-white overflow-hidden shadow rounded-lg">
-      <div class="p-5">
-        <div class="flex items-center">
-          <div class="flex-shrink-0">
-            <svg class="h-6 w-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-3.586l4.293-4.293A6 6 0 0115 7z"></path>
-            </svg>
-          </div>
-          <div class="ml-5 w-0 flex-1">
-            <dl>
-              <dt class="text-sm font-medium text-gray-500 truncate">Terakhir Login</dt>
-              <dd class="text-lg font-medium text-gray-900">
-                @if($user->updated_at)
-                <span class="local-datetime" data-datetime="{{ $user->updated_at->toISOString() }}" data-format="relative">{{ $user->updated_at->diffForHumans() }}</span>
-                @else
-                Belum pernah
-                @endif
-              </dd>
-            </dl>
+        </div>
+        <div class="flex-1 min-w-0">
+          <h2 class="text-2xl font-bold text-gray-900">{{ $user->nama }}</h2>
+          <p class="text-sm text-gray-600 mt-1">{{ $user->email }}</p>
+          <div class="mt-3">
+            <span class="role-badge">
+              @if($user->role->value === 'admin')
+                🛡️ {{ $user->role->getDisplayName() }}
+              @elseif($user->role->value === 'pemilik')
+                🏍️ {{ $user->role->getDisplayName() }}
+              @else
+                👤 {{ $user->role->getDisplayName() }}
+              @endif
+            </span>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Admin Actions -->
-    <div class="bg-white overflow-hidden shadow rounded-lg">
-      <div class="p-5">
-        <div class="flex items-center">
-          <div class="flex-shrink-0">
-            <svg class="h-6 w-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-            </svg>
-          </div>
-          <div class="ml-5 w-0 flex-1">
-            <dl>
-              <dt class="text-sm font-medium text-gray-500 truncate">Status Admin</dt>
-              <dd class="text-lg font-medium text-green-600">Aktif</dd>
-            </dl>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Account Status -->
-    <div class="bg-white overflow-hidden shadow rounded-lg">
-      <div class="p-5">
-        <div class="flex items-center">
-          <div class="flex-shrink-0">
-            <svg class="h-6 w-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <!-- Profile Details -->
+    <div class="px-6 py-6">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 info-grid">
+        <!-- Personal Information -->
+        <div>
+          <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+            <svg class="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
             </svg>
+            Informasi Personal
+          </h3>
+          <div class="space-y-4">
+            <div class="flex items-start space-x-3">
+              <div class="flex items-center justify-center w-8 h-8 bg-blue-100 rounded-lg">
+                <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"></path>
+                </svg>
+              </div>
+              <div class="flex-1">
+                <p class="text-sm font-medium text-gray-700">Email</p>
+                <p class="text-gray-900">{{ $user->email }}</p>
+              </div>
+            </div>
+
+            <div class="flex items-start space-x-3">
+              <div class="flex items-center justify-center w-8 h-8 bg-green-100 rounded-lg">
+                <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
+                </svg>
+              </div>
+              <div class="flex-1">
+                <p class="text-sm font-medium text-gray-700">No. Telepon</p>
+                <p class="text-gray-900">{{ $user->no_tlpn }}</p>
+              </div>
+            </div>
+
+            <div class="flex items-start space-x-3">
+              <div class="flex items-center justify-center w-8 h-8 bg-orange-100 rounded-lg">
+                <svg class="w-4 h-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                </svg>
+              </div>
+              <div class="flex-1">
+                <p class="text-sm font-medium text-gray-700">Alamat</p>
+                <p class="text-gray-900">{{ $user->alamat ?: 'Belum diisi' }}</p>
+              </div>
+            </div>
           </div>
-          <div class="ml-5 w-0 flex-1">
-            <dl>
-              <dt class="text-sm font-medium text-gray-500 truncate">Hak Akses</dt>
-              <dd class="text-lg font-medium text-purple-600">Administrator</dd>
-            </dl>
+        </div>
+
+        <!-- Account Information -->
+        <div>
+          <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+            <svg class="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            Informasi Akun
+          </h3>
+          <div class="space-y-4">
+            <div class="bg-gray-50 p-4 rounded-lg">
+              <div class="flex items-center space-x-2 mb-2">
+                <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                </svg>
+                <p class="text-sm font-medium text-gray-700">Bergabung</p>
+              </div>
+              <p class="text-gray-900 font-medium">{{ $user->created_at->format('d M Y H:i') }} WIB</p>
+              <p class="text-xs text-gray-500 mt-1">{{ $user->created_at->diffForHumans() }}</p>
+            </div>
+
+            <div class="bg-gray-50 p-4 rounded-lg">
+              <div class="flex items-center space-x-2 mb-2">
+                <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <p class="text-sm font-medium text-gray-700">Terakhir Update</p>
+              </div>
+              <p class="text-gray-900 font-medium">{{ $user->updated_at->format('d M Y H:i') }} WIB</p>
+              <p class="text-xs text-gray-500 mt-1">{{ $user->updated_at->diffForHumans() }}</p>
+            </div>
           </div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Recent Admin Activities Log -->
-  <div class="mt-6">
-    <div class="bg-white shadow rounded-lg">
-      <div class="px-4 py-5 sm:p-6">
-        <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
-          <svg class="inline w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+  <!-- Activity Stats -->
+  @if($user->role->value === 'admin')
+  <!-- Admin Activity Section -->
+  <div class="bg-white shadow-sm rounded-xl border border-gray-200 overflow-hidden card-shadow hover-scale">
+    <div class="px-6 py-4 bg-gradient-to-r from-purple-50 to-purple-100 border-b border-gray-200">
+      <div class="flex items-center space-x-3">
+        <div class="flex items-center justify-center w-10 h-10 bg-purple-600 rounded-lg shadow-sm">
+          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
           </svg>
-          Log Aktivitas Admin
-        </h3>
-        <div class="flow-root">
-          <ul role="list" class="-mb-8">
-            <li>
-              <div class="relative pb-8">
-                <div class="relative flex space-x-3">
-                  <div>
-                    <span class="h-8 w-8 rounded-full bg-green-500 flex items-center justify-center ring-8 ring-white">
-                      <svg class="h-5 w-5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
-                      </svg>
-                    </span>
-                  </div>
-                  <div class="min-w-0 flex-1 pt-1.5 flex justify-between space-x-4">
-                    <div>
-                      <p class="text-sm text-gray-500">Akun dibuat <span class="font-medium text-gray-900">{{ $user->nama }}</span></p>
-                    </div>
-                    <div class="text-right text-sm whitespace-nowrap text-gray-500">
-                      <time datetime="{{ $user->created_at->toISOString() }}" data-format="full">{{ $user->created_at->format('d M Y H:i') }}</time>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </li>
-            @if($user->updated_at != $user->created_at)
-            <li>
-              <div class="relative pb-8">
-                <div class="relative flex space-x-3">
-                  <div>
-                    <span class="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center ring-8 ring-white">
-                      <svg class="h-5 w-5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd"></path>
-                      </svg>
-                    </span>
-                  </div>
-                  <div class="min-w-0 flex-1 pt-1.5 flex justify-between space-x-4">
-                    <div>
-                      <p class="text-sm text-gray-500">Terakhir mengakses sistem</p>
-                    </div>
-                    <div class="text-right text-sm whitespace-nowrap text-gray-500">
-                      <time datetime="{{ $user->updated_at->toISOString() }}" data-format="full">{{ $user->updated_at->format('d M Y H:i') }}</time>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </li>
-            @endif
-            @if(isset($recentSessions) && $recentSessions->count() > 0)
-            @foreach($recentSessions->take(3) as $session)
-            <li>
-              <div class="relative pb-8">
-                <div class="relative flex space-x-3">
-                  <div>
-                    <span class="h-8 w-8 rounded-full bg-purple-500 flex items-center justify-center ring-8 ring-white">
-                      <svg class="h-5 w-5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"></path>
-                      </svg>
-                    </span>
-                  </div>
-                  <div class="min-w-0 flex-1 pt-1.5 flex justify-between space-x-4">
-                    <div>
-                      <p class="text-sm text-gray-500">Login dari <span class="font-medium text-gray-900">{{ $session['ip_address'] }}</span></p>
-                      <p class="text-xs text-gray-400">{{ Str::limit($session['user_agent'], 60) }}</p>
-                    </div>
-                    <div class="text-right text-sm whitespace-nowrap text-gray-500">
-                      <time datetime="{{ $session['last_activity']->toISOString() }}" data-format="full">{{ $session['last_activity']->format('d M Y H:i') }}</time>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </li>
-            @endforeach
-            @endif
-          </ul>
+        </div>
+        <div>
+          <h3 class="text-lg font-semibold text-gray-900">Aktivitas Administrator</h3>
+          <p class="text-sm text-gray-600">Status dan informasi admin system</p>
+        </div>
+      </div>
+    </div>
+    
+    <div class="p-6">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Status Admin -->
+        <div class="bg-gradient-to-r from-green-50 to-green-100 p-4 rounded-lg border border-green-200">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <svg class="h-8 w-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+            </div>
+            <div class="ml-4">
+              <p class="text-sm font-medium text-green-800">Status Admin</p>
+              <p class="text-lg font-bold text-green-900">Aktif</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Hak Akses -->
+        <div class="bg-gradient-to-r from-purple-50 to-purple-100 p-4 rounded-lg border border-purple-200">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <svg class="h-8 w-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+              </svg>
+            </div>
+            <div class="ml-4">
+              <p class="text-sm font-medium text-purple-800">Hak Akses</p>
+              <p class="text-lg font-bold text-purple-900">Full Access</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Terakhir Login -->
+        <div class="bg-gradient-to-r from-blue-50 to-blue-100 p-4 rounded-lg border border-blue-200">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <svg class="h-8 w-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-3.586l4.293-4.293A6 6 0 0115 7z"></path>
+              </svg>
+            </div>
+            <div class="ml-4">
+              <p class="text-sm font-medium text-blue-800">Terakhir Login</p>
+              <p class="text-sm font-bold text-blue-900">{{ $user->updated_at->diffForHumans() }}</p>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   </div>
-</div>
-@elseif($user->role === 'pemilik' || $user->role === 'penyewa')
-<!-- Non-Admin Activity Section -->
-<div class="mt-8">
-  <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Aktivitas</h3>
-  <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-    @if($user->role === 'pemilik')
-    <!-- Motor yang Dimiliki -->
-    <div class="bg-white overflow-hidden shadow rounded-lg">
-      <div class="p-5">
-        <div class="flex items-center">
-          <div class="flex-shrink-0">
-            <svg class="h-6 w-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-            </svg>
-          </div>
-          <div class="ml-5 w-0 flex-1">
-            <dl>
-              <dt class="text-sm font-medium text-gray-500 truncate">Motor yang Dimiliki</dt>
-              <dd class="text-lg font-medium text-gray-900">{{ $user->motors()->count() }}</dd>
-            </dl>
-          </div>
+
+  @elseif($user->role->value === 'pemilik')
+  <!-- Pemilik Activity Section -->
+  <div class="bg-white shadow-sm rounded-xl border border-gray-200 overflow-hidden card-shadow hover-scale">
+    <div class="px-6 py-4 bg-gradient-to-r from-blue-50 to-blue-100 border-b border-gray-200">
+      <div class="flex items-center space-x-3">
+        <div class="flex items-center justify-center w-10 h-10 bg-blue-600 rounded-lg shadow-sm">
+          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+          </svg>
+        </div>
+        <div>
+          <h3 class="text-lg font-semibold text-gray-900">Aktivitas Pemilik Motor</h3>
+          <p class="text-sm text-gray-600">Informasi rental dan motor yang dimiliki</p>
         </div>
       </div>
     </div>
-
-    <!-- Transaksi Rental -->
-    <div class="bg-white overflow-hidden shadow rounded-lg">
-      <div class="p-5">
-        <div class="flex items-center">
-          <div class="flex-shrink-0">
-            <svg class="h-6 w-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-            </svg>
+    
+    <div class="p-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Motor yang Dimiliki -->
+        <div class="bg-gradient-to-r from-blue-50 to-blue-100 p-4 rounded-lg border border-blue-200">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <svg class="h-8 w-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+              </svg>
+            </div>
+            <div class="ml-4">
+              <p class="text-sm font-medium text-blue-800">Motor yang Dimiliki</p>
+              <p class="text-2xl font-bold text-blue-900">{{ $user->motors()->count() }}</p>
+            </div>
           </div>
-          <div class="ml-5 w-0 flex-1">
-            <dl>
-              <dt class="text-sm font-medium text-gray-500 truncate">Total Rental</dt>
-              <dd class="text-lg font-medium text-gray-900">
+        </div>
+
+        <!-- Total Rental -->
+        <div class="bg-gradient-to-r from-green-50 to-green-100 p-4 rounded-lg border border-green-200">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <svg class="h-8 w-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+              </svg>
+            </div>
+            <div class="ml-4">
+              <p class="text-sm font-medium text-green-800">Total Rental</p>
+              <p class="text-2xl font-bold text-green-900">
                 {{ \App\Models\Penyewaan::whereHas('motor', function($q) use ($user) {
-                                    $q->where('owner_id', $user->id);
-                                })->count() }}
-              </dd>
-            </dl>
-          </div>
-        </div>
-      </div>
-    </div>
-    @endif
-
-    @if($user->role->value === 'penyewa')
-    <!-- Rental yang Dilakukan -->
-    <div class="bg-white overflow-hidden shadow rounded-lg">
-      <div class="p-5">
-        <div class="flex items-center">
-          <div class="flex-shrink-0">
-            <svg class="h-6 w-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-            </svg>
-          </div>
-          <div class="ml-5 w-0 flex-1">
-            <dl>
-              <dt class="text-sm font-medium text-gray-500 truncate">Total Rental</dt>
-              <dd class="text-lg font-medium text-gray-900">{{ $user->penyewaans()->count() }}</dd>
-            </dl>
-          </div>
-        </div>
-      </div>
-    </div>
-    @endif
-
-    <!-- Status Account -->
-    <div class="bg-white overflow-hidden shadow rounded-lg">
-      <div class="p-5">
-        <div class="flex items-center">
-          <div class="flex-shrink-0">
-            <svg class="h-6 w-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-            </svg>
-          </div>
-          <div class="ml-5 w-0 flex-1">
-            <dl>
-              <dt class="text-sm font-medium text-gray-500 truncate">Status Akun</dt>
-              <dd class="text-lg font-medium text-green-600">Aktif</dd>
-            </dl>
+                    $q->where('owner_id', $user->id);
+                })->count() }}
+              </p>
+            </div>
           </div>
         </div>
       </div>
     </div>
   </div>
+
+  @elseif($user->role->value === 'penyewa')
+  <!-- Penyewa Activity Section -->
+  <div class="bg-white shadow-sm rounded-xl border border-gray-200 overflow-hidden card-shadow hover-scale">
+    <div class="px-6 py-4 bg-gradient-to-r from-green-50 to-green-100 border-b border-gray-200">
+      <div class="flex items-center space-x-3">
+        <div class="flex items-center justify-center w-10 h-10 bg-green-600 rounded-lg shadow-sm">
+          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+          </svg>
+        </div>
+        <div>
+          <h3 class="text-lg font-semibold text-gray-900">Aktivitas Penyewa</h3>
+          <p class="text-sm text-gray-600">Riwayat rental dan status akun</p>
+        </div>
+      </div>
+    </div>
+    
+    <div class="p-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Total Rental -->
+        <div class="bg-gradient-to-r from-green-50 to-green-100 p-4 rounded-lg border border-green-200">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <svg class="h-8 w-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+              </svg>
+            </div>
+            <div class="ml-4">
+              <p class="text-sm font-medium text-green-800">Total Rental</p>
+              <p class="text-2xl font-bold text-green-900">{{ $user->penyewaans()->count() }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Status Akun -->
+        <div class="bg-gradient-to-r from-blue-50 to-blue-100 p-4 rounded-lg border border-blue-200">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <svg class="h-8 w-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+            </div>
+            <div class="ml-4">
+              <p class="text-sm font-medium text-blue-800">Status Akun</p>
+              <p class="text-lg font-bold text-blue-900">Aktif</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  @endif
 </div>
-@endif
 @endsection
+
+@push('styles')
+<style>
+    /* Custom hover effects and animations */
+    .hover-scale {
+        transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    }
+    
+    .hover-scale:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+    
+    /* Gradient animation */
+    .gradient-animate {
+        background-size: 200% 200%;
+        animation: gradientAnimation 3s ease infinite;
+    }
+    
+    @keyframes gradientAnimation {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+    
+    /* Enhanced card shadows */
+    .card-shadow {
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        transition: all 0.3s ease;
+    }
+    
+    .card-shadow:hover {
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+    
+    /* Custom badge styling */
+    .role-badge {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* Avatar enhancement */
+    .avatar-container {
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .avatar-container::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+        border-radius: 50%;
+        z-index: 1;
+    }
+    
+    /* Smooth transitions for all interactive elements */
+    .transition-all {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    /* Enhanced button styling */
+    .btn-modern {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.25);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .btn-modern::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+        transition: left 0.5s;
+    }
+    
+    .btn-modern:hover::before {
+        left: 100%;
+    }
+    
+    .btn-modern:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        color: white;
+    }
+    
+    /* Modern action buttons with enhanced styling */
+    .bg-gradient-to-r.from-blue-600.to-blue-700 {
+        background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%) !important;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .bg-gradient-to-r.from-blue-600.to-blue-700::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+        transition: left 0.6s ease;
+        z-index: 1;
+    }
+    
+    .bg-gradient-to-r.from-blue-600.to-blue-700:hover::before {
+        left: 100%;
+    }
+    
+    .bg-gradient-to-r.from-blue-600.to-blue-700:hover {
+        background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%) !important;
+        box-shadow: 0 10px 25px rgba(59, 130, 246, 0.4) !important;
+    }
+    
+    .bg-gradient-to-r.from-red-500.to-red-600 {
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .bg-gradient-to-r.from-red-500.to-red-600::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+        transition: left 0.6s ease;
+        z-index: 1;
+    }
+    
+    .bg-gradient-to-r.from-red-500.to-red-600:hover::before {
+        left: 100%;
+    }
+    
+    .bg-gradient-to-r.from-red-500.to-red-600:hover {
+        background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%) !important;
+        box-shadow: 0 10px 25px rgba(239, 68, 68, 0.4) !important;
+    }
+    
+    /* Button text should be above the shine effect */
+    .bg-gradient-to-r svg,
+    .bg-gradient-to-r span {
+        position: relative;
+        z-index: 2;
+    }
+    
+    /* Information grid styling */
+    .info-grid dt {
+        color: #6b7280;
+        font-weight: 500;
+        font-size: 0.875rem;
+    }
+    
+    .info-grid dd {
+        color: #1f2937;
+        font-weight: 600;
+        margin-top: 2px;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 640px) {
+        .card-shadow {
+            margin: 0 -1rem;
+            border-radius: 0;
+        }
+        
+        .hover-scale:hover {
+            transform: none;
+        }
+    }
+</style>
+@endpush

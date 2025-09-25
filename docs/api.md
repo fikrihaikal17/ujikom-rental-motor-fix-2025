@@ -701,6 +701,6 @@ const booking = await client.bookings.create({
 
 ---
 
-**API Documentation v1.0**  
-_Last Updated: September 23, 2025_  
-_For RideNow Platform v1.0.0_
+**API Documentation v1.2**  
+_Last Updated: September 25, 2025_  
+_For RideNow Platform v1.2.0_

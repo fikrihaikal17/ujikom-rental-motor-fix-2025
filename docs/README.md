@@ -8,6 +8,20 @@ Selamat datang di dokumentasi lengkap sistem RideNow, platform rental motor yang
 -   [**Owner Documentation**](./owner.md) - Panduan lengkap untuk Pemilik Motor
 -   [**Renter Documentation**](./renter.md) - Panduan lengkap untuk Penyewa Motor
 
+## 🔧 Technical Documentation
+
+-   [**API Documentation**](./api.md) - API endpoints dan integrasi
+-   [**Database Schema**](./database.md) - Struktur database dan relationships
+-   [**Deployment Guide**](./deployment.md) - Panduan deployment ke production
+-   [**Changelog**](./changelog.md) - History perubahan dan update sistem
+
+## 📋 Development Updates
+
+-   [**Dashboard Owner Fix**](./dashboard-owner-fix-complete.md) - Perbaikan dashboard owner dengan dynamic data
+-   [**Gmail Rental Implementation**](./gmail-rental-implementation.md) - Implementasi sistem rental menggunakan akun Gmail
+-   [**Owner Dashboard Dynamic Fix**](./owner-dashboard-dynamic-fix.md) - Perbaikan dynamic content dashboard owner
+-   [**Pagination Enhancement**](./pagination-enhancement.md) - Peningkatan sistem pagination
+
 ## 🎯 Overview Sistem
 
 RideNow adalah platform rental motor berbasis web yang memungkinkan:
@@ -137,6 +151,6 @@ Untuk bantuan teknis dan pertanyaan:
 
 ---
 
-**Last Updated**: September 23, 2025  
-**Version**: 1.0.0  
+**Last Updated**: September 25, 2025  
+**Version**: 1.2.0  
 **Documentation Created By**: RideNow Development Team

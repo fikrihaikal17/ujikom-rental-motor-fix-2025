@@ -66,18 +66,18 @@
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
                 <div class="text-sm font-medium text-gray-900">
-                  {{ $revenue->penyewaan->motor->merk }}
+                  {{ $revenue->penyewaan->motor->merk ?? 'N/A' }} {{ $revenue->penyewaan->motor->model ?? 'N/A' }}
                 </div>
                 <div class="text-sm text-gray-500">
                   {{ $revenue->penyewaan->motor->no_plat }}
                 </div>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                {{ $revenue->penyewaan->user->nama }}
+                {{ $revenue->penyewaan->penyewa->nama }}
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
                 <span class="text-lg font-semibold text-green-600">
-                  Rp {{ number_format($revenue->jumlah_owner, 0, ',', '.') }}
+                  Rp {{ number_format($revenue->bagi_hasil_pemilik, 0, ',', '.') }}
                 </span>
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
@@ -93,7 +93,7 @@
 
       <!-- Pagination -->
       <div class="px-6 py-4 bg-gray-50 border-t border-gray-200">
-        {{ $revenueHistory->links() }}
+        {{ $revenueHistory->links('custom.advanced-pagination') }}
       </div>
       @else
       <div class="p-12 text-center">

@@ -2,6 +2,15 @@
 
 @section('title', 'Kelola Motor - RideNow')
 
+@push('styles')
+<style>
+.btn-loading {
+  pointer-events: none;
+  opacity: 0.7;
+}
+</style>
+@endpush
+
 @section('content')
 <!-- Header -->
 <div class="mb-8">
@@ -10,13 +19,24 @@
       <h1 class="text-3xl font-bold text-gray-900">Kelola Motor</h1>
       <p class="text-gray-600 mt-2">Daftar motor yang telah Anda daftarkan</p>
     </div>
-    <a href="{{ route('owner.motors.create') }}"
-      class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 flex items-center">
-      <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-      </svg>
-      Tambah Motor Baru
-    </a>
+    <div class="flex gap-3">
+      <a href="{{ route('owner.motors.print-pdf') }}"
+        class="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200 flex items-center shadow-sm hover:shadow-md hover:scale-105"
+        title="Download daftar motor dalam format PDF"
+        onclick="this.innerHTML='<svg class=\'w-5 h-5 mr-2 animate-spin\' fill=\'none\' stroke=\'currentColor\' viewBox=\'0 0 24 24\'><circle cx=\'12\' cy=\'12\' r=\'10\' stroke=\'currentColor\' stroke-width=\'4\' class=\'opacity-25\'></circle><path class=\'opacity-75\' fill=\'currentColor\' d=\'M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z\'></path></svg>Generating PDF...'; setTimeout(() => this.innerHTML='<svg class=\'w-5 h-5 mr-2\' fill=\'none\' stroke=\'currentColor\' viewBox=\'0 0 24 24\'><path stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z\'></path></svg>Cetak PDF', 3000);">
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+        </svg>
+        Cetak PDF
+      </a>
+      <a href="{{ route('owner.motors.create') }}"
+        class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 flex items-center">
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+        </svg>
+        Tambah Motor Baru
+      </a>
+    </div>
   </div>
 </div>
 
@@ -71,6 +91,21 @@
     dengan status "<strong>{{ ucfirst(str_replace('_', ' ', request('status'))) }}</strong>"
     @endif
   </p>
+</div>
+@endif
+
+<!-- Quick Actions Info -->
+@if($motors->count() > 0)
+<div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+  <div class="flex items-center">
+    <svg class="w-5 h-5 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+    </svg>
+    <p class="text-blue-800 text-sm">
+      <strong>Tips:</strong> Klik tombol "Cetak PDF" untuk mendownload daftar lengkap motor Anda dalam format PDF. 
+      File PDF akan berisi informasi detail semua motor, status, dan pendapatan.
+    </p>
+  </div>
 </div>
 @endif
 
@@ -253,7 +288,7 @@
 <!-- Pagination -->
 @if($motors->hasPages())
 <div class="flex justify-center">
-  {{ $motors->links() }}
+  {{ $motors->links('custom.advanced-pagination') }}
 </div>
 @endif
 

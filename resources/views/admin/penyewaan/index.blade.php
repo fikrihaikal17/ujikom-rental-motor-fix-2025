@@ -273,8 +273,8 @@
   </div>
 
   @if(method_exists($penyewaans, 'hasPages') && $penyewaans->hasPages())
-  <div class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
-    {{ $penyewaans->appends(request()->query())->links() }}
+  <div class="px-6 py-4">
+    {{ $penyewaans->appends(request()->query())->links('custom.advanced-pagination') }}
   </div>
   @endif
 

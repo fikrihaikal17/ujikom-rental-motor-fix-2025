@@ -10,20 +10,34 @@
       <h1 class="text-2xl font-bold text-gray-900">Riwayat Penyewaan</h1>
       <p class="text-gray-600">Lihat semua riwayat penyewaan motor Anda</p>
     </div>
-    <div class="flex space-x-3">
-      <button onclick="exportHistory()"
-        class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 inline-flex items-center">
-        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+    <div class="flex flex-col sm:flex-row gap-3">
+      <button onclick="exportHistory()" id="exportBtn"
+        class="group relative inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-red-600 to-red-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 ease-out hover:from-red-700 hover:to-red-800 focus:outline-none focus:ring-4 focus:ring-red-300 focus:ring-opacity-50">
+        <!-- Icon with animation -->
+        <div class="flex items-center">
+          <svg class="w-5 h-5 mr-2 transition-transform duration-200 group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 15l-4-4-4 4"></path>
+          </svg>
+          <span class="text-sm font-medium">Export PDF</span>
+        </div>
+        
+        <!-- Shine effect -->
+        <div class="absolute inset-0 rounded-xl bg-gradient-to-r from-transparent via-white/20 to-transparent transform skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-out"></div>
+        
+        <!-- Loading spinner (hidden by default) -->
+        <svg class="hidden w-4 h-4 mr-2 animate-spin" id="loadingSpinner" viewBox="0 0 24 24" fill="none">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
         </svg>
-        Export PDF
       </button>
+      
       <a href="{{ route('renter.motors.index') }}"
-        class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 inline-flex items-center">
-        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+        class="group inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 ease-out hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 focus:ring-opacity-50">
+        <svg class="w-5 h-5 mr-2 transition-transform duration-200 group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
         </svg>
-        Booking Baru
+        <span class="text-sm font-medium">Booking Baru</span>
       </a>
     </div>
   </div>
@@ -163,9 +177,9 @@
             <td class="px-6 py-4 whitespace-nowrap">
               <div class="flex items-center">
                 <div class="w-12 h-12 bg-gray-300 rounded-lg mr-4 flex-shrink-0">
-                  @if($booking->motor->foto_motor)
-                  <img src="{{ asset('storage/' . $booking->motor->foto_motor) }}"
-                    alt="{{ $booking->motor->nama_motor }}"
+                  @if($booking->motor->photo)
+                  <img src="{{ asset($booking->motor->photo) }}"
+                    alt="{{ $booking->motor->merk }} {{ $booking->motor->model }}"
                     class="w-full h-full object-cover rounded-lg">
                   @else
                   <div class="w-full h-full flex items-center justify-center text-gray-500">
@@ -176,8 +190,8 @@
                   @endif
                 </div>
                 <div>
-                  <div class="text-sm font-medium text-gray-900">{{ $booking->motor->nama_motor }}</div>
-                  <div class="text-sm text-gray-500">{{ $booking->motor->merek }} - {{ $booking->motor->plat_nomor }}</div>
+                  <div class="text-sm font-medium text-gray-900">{{ $booking->motor->merk }} {{ $booking->motor->model }}</div>
+                  <div class="text-sm text-gray-500">{{ $booking->motor->merk }} - {{ $booking->motor->no_plat }}</div>
                 </div>
               </div>
             </td>
@@ -243,7 +257,7 @@
 
   <!-- Pagination -->
   <div class="mt-6">
-    {{ $history->links() }}
+    {{ $history->links('custom.advanced-pagination') }}
   </div>
   @else
   <!-- Empty State -->
@@ -272,6 +286,18 @@
 
 <script>
   function exportHistory() {
+    const exportBtn = document.getElementById('exportBtn');
+    const loadingSpinner = document.getElementById('loadingSpinner');
+    const buttonText = exportBtn.querySelector('span');
+    const buttonIcon = exportBtn.querySelector('svg:not(#loadingSpinner)');
+    
+    // Show loading state
+    exportBtn.disabled = true;
+    exportBtn.classList.add('cursor-not-allowed', 'opacity-75');
+    buttonIcon.classList.add('hidden');
+    loadingSpinner.classList.remove('hidden');
+    buttonText.textContent = 'Mengekspor...';
+    
     // Create form to submit to export endpoint
     const form = document.createElement('form');
     form.method = 'GET';
@@ -290,6 +316,54 @@
     document.body.appendChild(form);
     form.submit();
     document.body.removeChild(form);
+    
+    // Reset button state after a delay
+    setTimeout(() => {
+      exportBtn.disabled = false;
+      exportBtn.classList.remove('cursor-not-allowed', 'opacity-75');
+      buttonIcon.classList.remove('hidden');
+      loadingSpinner.classList.add('hidden');
+      buttonText.textContent = 'Export PDF';
+      
+      // Show success feedback
+      showToast('PDF berhasil diunduh!', 'success');
+    }, 2000);
+  }
+  
+  // Toast notification function
+  function showToast(message, type = 'info') {
+    const toast = document.createElement('div');
+    toast.className = `fixed top-4 right-4 z-50 px-6 py-3 rounded-lg shadow-lg transform transition-all duration-300 translate-x-full ${
+      type === 'success' ? 'bg-green-500 text-white' : 
+      type === 'error' ? 'bg-red-500 text-white' : 
+      'bg-blue-500 text-white'
+    }`;
+    toast.innerHTML = `
+      <div class="flex items-center">
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          ${type === 'success' ? 
+            '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>' :
+            '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>'
+          }
+        </svg>
+        <span class="font-medium">${message}</span>
+      </div>
+    `;
+    
+    document.body.appendChild(toast);
+    
+    // Animate in
+    setTimeout(() => {
+      toast.classList.remove('translate-x-full');
+    }, 100);
+    
+    // Animate out and remove
+    setTimeout(() => {
+      toast.classList.add('translate-x-full');
+      setTimeout(() => {
+        document.body.removeChild(toast);
+      }, 300);
+    }, 3000);
   }
 </script>
 @endsection
