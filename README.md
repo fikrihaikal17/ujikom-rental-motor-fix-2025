@@ -516,7 +516,6 @@ php artisan view:cache
 
 **SMK Negeri 1 Ciamis**
 
-<div align="center">
 
 -   📍 **Alamat**: Jl. Jenderal Sudirman No.269, Ciamis, Jawa Barat
 -   🌐 **Website**: [smkn1ciamis.sch.id](https://smkn1ciamis.sch.id)
@@ -556,7 +555,7 @@ Jika Anda ingin berkontribusi pada project ini:
 
 ## 📝 Changelog
 
-### Version 1.0.0 (2025-01-XX)
+### Version 1.0.0 (2025-09-25)
 
 -   ✅ Initial release dengan complete rental motor system
 -   ✅ Multi-role authentication (Admin, Owner, Renter)

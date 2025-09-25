@@ -14,6 +14,10 @@
     "intelephense.diagnostics.undefinedTypes": false,
     "intelephense.completion.insertUseDeclaration": true,
     "intelephense.completion.fullyQualifyGlobalConstantsAndFunctions": false,
+    "intelephense.environment.phpVersion": "8.4.0",
+    "intelephense.environment.includePaths": [
+        "vendor"
+    ],
     "blade.format.enable": true,
     "php.validate.executablePath": "",
     "php.executablePath": "",

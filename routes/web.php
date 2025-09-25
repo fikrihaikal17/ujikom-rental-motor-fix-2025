@@ -6,6 +6,8 @@ use Illuminate\Http\Response;
 use App\Models\Motor;
 use App\Models\Penyewaan;
 use App\Models\User;
+use App\Models\BagiHasil;
+use Illuminate\Database\Eloquent\Builder;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboard;
@@ -240,13 +242,13 @@ Route::middleware('auth')->prefix('api')->group(function () {
 
             'stats' => match ($user->role->value) {
                 'admin' => [
-                    'total_users' => \App\Models\User::count(),
-                    'total_motors' => \App\Models\Motor::count(),
-                    'pending_verifications' => \App\Models\Motor::where('status', 'pending')->count(),
+                    'total_users' => User::query()->count(),
+                    'total_motors' => Motor::query()->count(),
+                    'pending_verifications' => Motor::query()->where('status', 'pending')->count(),
                 ],
                 'pemilik' => [
                     'total_motors' => $user->motors()->count(),
-                    'active_bookings' => \App\Models\Penyewaan::whereIn('motor_id', $user->motors()->pluck('id'))->whereIn('status', ['confirmed', 'active'])->count(),
+                    'active_bookings' => Penyewaan::query()->whereIn('motor_id', $user->motors()->pluck('id'))->whereIn('status', ['confirmed', 'active'])->count(),
                     'total_earnings' => $user->bagiHasils()->where('settled_at', '!=', null)->sum('bagi_hasil_pemilik'),
                 ],
                 'penyewa' => [

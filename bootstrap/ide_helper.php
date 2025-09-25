@@ -81,15 +81,71 @@ if (!function_exists('asset')) {
 }
 
 if (!function_exists('config')) {
-  /**
-   * Get / set the specified configuration value.
-   *
-   * @param  array|string|null  $key
-   * @param  mixed  $default
-   * @return mixed|\Illuminate\Config\Repository
-   */
-  function config($key = null, $default = null)
-  {
-    //
-  }
+    /**
+     * Get / set the specified configuration value.
+     *
+     * @param  array|string|null  $key
+     * @param  mixed  $default
+     * @return mixed|\Illuminate\Config\Repository
+     */
+    function config($key = null, $default = null)
+    {
+        //
+    }
+}
+
+// Eloquent Builder method stubs for IDE support
+if (!class_exists('EloquentBuilderStub')) {
+    /**
+     * @mixin \Illuminate\Database\Eloquent\Builder
+     */
+    class EloquentBuilderStub
+    {
+        /**
+         * @return int
+         */
+        public function count()
+        {
+            return 0;
+        }
+
+        /**
+         * @param string $column
+         * @param string $operator
+         * @param mixed $value
+         * @return $this
+         */
+        public function where($column, $operator = null, $value = null)
+        {
+            return $this;
+        }
+
+        /**
+         * @param string $column
+         * @param array $values
+         * @return $this
+         */
+        public function whereIn($column, $values)
+        {
+            return $this;
+        }
+
+        /**
+         * @param string $column
+         * @return \Illuminate\Support\Collection
+         */
+        public function pluck($column)
+        {
+            return new \Illuminate\Support\Collection();
+        }
+
+        /**
+         * @param string $column
+         * @return float|int
+         */
+        public function sum($column)
+        {
+            return 0;
+        }
+    }
 }
