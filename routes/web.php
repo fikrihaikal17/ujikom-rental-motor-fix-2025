@@ -2,6 +2,10 @@
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Response;
+use App\Models\Motor;
+use App\Models\Penyewaan;
+use App\Models\User;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboard;
@@ -47,10 +51,7 @@ Route::get('/', function () {
     return redirect()->route('login');
 })->name('home');
 
-// Debug route untuk test upload
-Route::get('/test-upload', function () {
-    return view('test-upload');
-})->middleware('auth');
+
 
 // Guest routes (login and registration)
 Route::middleware('guest')->group(function () {
